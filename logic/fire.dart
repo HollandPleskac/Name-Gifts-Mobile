@@ -118,7 +118,7 @@ class Fire {
   ///
   ///
 
-  void addMember(String memberName, String uid, String eventId) {
+  void addMember({String memberName, String uid, String eventId}) {
     _firestore
         .collection('events')
         .document(eventId)
@@ -153,7 +153,7 @@ class Fire {
   ///
   ///
 
-  void removeFamilyMember(String memberName, String uid, String eventId) {
+  void removeFamilyMember({String memberName, String uid, String eventId}) {
     _firestore
         .collection('events')
         .document(eventId)

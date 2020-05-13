@@ -12,84 +12,88 @@ class MyMembersScreen extends StatefulWidget {
 }
 
 class _MyMembersScreenState extends State<MyMembersScreen> {
+  TextEditingController _memberNameController = TextEditingController();
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: <Widget>[
-          ClipPath(
-            clipper: SClipper(),
-            child: Container(
-              height: 350,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topRight,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFF3383CD),
-                    Color(0xFF11249F),
-                  ],
-                ),
-                image: DecorationImage(
-                  alignment: Alignment.topCenter,
-                  image: AssetImage(
-                    "assets/images/virus.png",
+      body: SingleChildScrollView(
+        physics: BouncingScrollPhysics(),
+        child: Column(
+          children: <Widget>[
+            ClipPath(
+              clipper: SClipper(),
+              child: Container(
+                height: 350,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topRight,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFF3383CD),
+                      Color(0xFF11249F),
+                    ],
                   ),
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  SizedBox(height: 20),
-                  Expanded(
-                    child: Stack(
-                      children: <Widget>[
-                        // SvgPicture.asset(
-                        //   'assets/icons/Drcorona.svg',
-                        //   width: 210,
-                        //   fit: BoxFit.fitWidth,
-                        //   alignment: Alignment.topCenter,
-                        // ),
-
-                        Positioned(
-                          top: 75,
-                          left: 110,
-                          child: Wrap(
-                            children: <Widget>[
-                              Text(
-                                'My Members',
-                                style: kHeadingTextStyle.copyWith(
-                                    color: Colors.white),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        Container(), // dont know why this works ??
-                      ],
+                  image: DecorationImage(
+                    alignment: Alignment.topCenter,
+                    image: AssetImage(
+                      "assets/images/virus.png",
                     ),
                   ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    SizedBox(height: 20),
+                    Expanded(
+                      child: Stack(
+                        children: <Widget>[
+                          // SvgPicture.asset(
+                          //   'assets/icons/Drcorona.svg',
+                          //   width: 210,
+                          //   fit: BoxFit.fitWidth,
+                          //   alignment: Alignment.topCenter,
+                          // ),
+
+                          Positioned(
+                            top: 75,
+                            left: 110,
+                            child: Wrap(
+                              children: <Widget>[
+                                Text(
+                                  'My Members',
+                                  style: kHeadingTextStyle.copyWith(
+                                      color: Colors.white),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          Container(), // dont know why this works ??
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Container(
+              height: 320,
+              child: ListView(
+                physics: BouncingScrollPhysics(),
+                children: <Widget>[
+                  member(context),
+                  member(context),
+                  member(context),
+                  member(context),
+                  member(context),
+                  member(context),
+                  member(context),
                 ],
               ),
             ),
-          ),
-          Container(
-            height: 320,
-            child: ListView(
-              physics: BouncingScrollPhysics(),
-              children: <Widget>[
-                member(context),
-                member(context),
-                member(context),
-                member(context),
-                member(context),
-                member(context),
-                member(context),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
       floatingActionButton: Padding(
         padding: const EdgeInsets.only(bottom: 50),
@@ -105,8 +109,60 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
             color: Colors.white,
           ),
           onPressed: () {
-            print('adding a member now');
-            _fire
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                  title: Text(
+                    'Add a member',
+                    style: kHeadingTextStyle,
+                  ),
+                  content: Container(
+                    height: 100,
+                    child: Column(
+                      children: <Widget>[
+                        memberNameInput(
+                          context: context,
+                          controller: _memberNameController,
+                          icon: Icon(
+                            Icons.person_add,
+                            color: kPrimaryColor,
+                          ),
+                          hintText: 'member name',
+                        ),
+                        Align(
+                          alignment: Alignment.bottomRight,
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 10),
+                            child: RaisedButton(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                              color: kPrimaryColor,
+                              onPressed: () {
+                                _fire.addMember(
+                                  uid: 'HpVdivf2z7MRwu4nppw8m6CVTpp1',
+                                  eventId: 'FS2N1B12Q1Fs3GURMUA0',
+                                  memberName: _memberNameController.text,
+                                );
+                                Navigator.pop(context);
+                              },
+                              child: Text(
+                                'Add',
+                                style: kSubTextStyle.copyWith(
+                                    color: Colors.white, fontSize: 17),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
           },
         ),
       ),
@@ -254,6 +310,34 @@ Widget memberDelete(BuildContext context) {
         size: 30,
       ),
       onPressed: () {},
+    ),
+  );
+}
+
+Widget memberNameInput({
+  BuildContext context,
+  TextEditingController controller,
+  Icon icon,
+  String hintText,
+}) {
+  return Center(
+    child: Container(
+      width: MediaQuery.of(context).size.width * 0.8,
+      child: TextFormField(
+        controller: controller,
+        maxLines: 1,
+        style: kSubTextStyle,
+        autofocus: false,
+        decoration: InputDecoration(
+            border: InputBorder.none,
+            hintStyle: kSubTextStyle,
+            labelStyle: TextStyle(
+              color: Colors.white,
+            ),
+            hintText: hintText,
+            icon: icon),
+        // dont need a validator - solving the issue is done in the return from the sign in function
+      ),
     ),
   );
 }
