@@ -118,7 +118,7 @@ class Fire {
   ///
   ///
 
-  void addMember({String memberName, String uid, String eventId}) {
+  void addDependantMember({String memberName, String uid, String eventId}) {
     _firestore
         .collection('events')
         .document(eventId)
@@ -127,7 +127,10 @@ class Fire {
         .collection('family members')
         .document(memberName)
         .setData(
-      {'linked': ''},
+      {
+        'linked': '',
+        'member type': 'dependant member',
+      },
     );
 
     //               transaction updates the count of total members in family
@@ -153,7 +156,7 @@ class Fire {
   ///
   ///
 
-  void removeFamilyMember({String memberName, String uid, String eventId}) {
+  void deleteDependantMember({String memberName, String uid, String eventId}) {
     _firestore
         .collection('events')
         .document(eventId)
@@ -173,8 +176,9 @@ class Fire {
     _firestore.runTransaction((Transaction tx) async {
       DocumentSnapshot postSnapshot = await tx.get(postRef);
       if (postSnapshot.exists) {
-        await tx.update(postRef,
-            <String, dynamic>{'total family members': postSnapshot.data['total family members'] - 1});
+        await tx.update(postRef, <String, dynamic>{
+          'total family members': postSnapshot.data['total family members'] - 1
+        });
       }
     });
   }

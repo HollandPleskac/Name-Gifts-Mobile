@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:name_gifts_v2/constant.dart';
 import 'package:polygon_clipper/polygon_clipper.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../logic/fire.dart';
 
 final _fire = Fire();
+
+final Firestore _firestore = Firestore();
 
 class MyMembersScreen extends StatefulWidget {
   @override
@@ -77,21 +80,64 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
                 ),
               ),
             ),
+
+            ///
+            ///
+            ///
+
             Container(
               height: 320,
-              child: ListView(
-                physics: BouncingScrollPhysics(),
-                children: <Widget>[
-                  member(context),
-                  member(context),
-                  member(context),
-                  member(context),
-                  member(context),
-                  member(context),
-                  member(context),
-                ],
+              child: StreamBuilder(
+                stream: _firestore
+                    .collection("events")
+                    .document('FS2N1B12Q1Fs3GURMUA0')
+                    .collection('event members')
+                    .document('HpVdivf2z7MRwu4nppw8m6CVTpp1')
+                    .collection('family members')
+                    .snapshots(),
+                builder: (BuildContext context,
+                    AsyncSnapshot<QuerySnapshot> snapshot) {
+                  if (snapshot.hasError)
+                    return Text('Error: ${snapshot.error}');
+
+                  switch (snapshot.connectionState) {
+                    case ConnectionState.waiting:
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    default:
+                      return Center(
+                        child: ListView(
+                          children: snapshot.data.documents.map(
+                            (DocumentSnapshot document) {
+                              return member(context, document.documentID,document['member type']);
+                            },
+                          ).toList(),
+                        ),
+                      );
+                  }
+                },
               ),
             ),
+
+            ///
+            ///
+            ///
+            // Container(
+            //   height: 320,
+            //   child: ListView(
+            //     physics: BouncingScrollPhysics(),
+            //     children: <Widget>[
+            //       member(context),
+            //       member(context),
+            //       member(context),
+            //       member(context),
+            //       member(context),
+            //       member(context),
+            //       member(context),
+            //     ],
+            //   ),
+            // ),
           ],
         ),
       ),
@@ -142,7 +188,7 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
                               ),
                               color: kPrimaryColor,
                               onPressed: () {
-                                _fire.addMember(
+                                _fire.addDependantMember(
                                   uid: 'HpVdivf2z7MRwu4nppw8m6CVTpp1',
                                   eventId: 'FS2N1B12Q1Fs3GURMUA0',
                                   memberName: _memberNameController.text,
@@ -198,7 +244,7 @@ class SClipper extends CustomClipper<Path> {
   }
 }
 
-Widget member(BuildContext context) {
+Widget member(BuildContext context, String memberName,String memberType) {
   return Container(
     margin: EdgeInsets.only(left: 20, right: 20, bottom: 20),
     height: 80,
@@ -239,15 +285,15 @@ Widget member(BuildContext context) {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           Container(),
-                          memberNameText(context),
-                          memberTypeText(context),
+                          memberNameText(context,memberName),
+                          memberTypeText(context,memberType),
                           Container(),
                           // containers are here to make memberNameText and memberTypeText go nearer to each other
                         ],
                       ),
                     ],
                   ),
-                  memberDelete(context),
+                  memberDelete(context, memberName),
                 ],
               ),
             ),
@@ -281,9 +327,9 @@ Widget hexagon(BuildContext context) {
   );
 }
 
-Widget memberNameText(BuildContext context) {
+Widget memberNameText(BuildContext context,String memberName) {
   return Text(
-    'Holland Pleskac',
+    memberName,
     style: kHeadingTextStyle.copyWith(
       fontSize: 20,
       color: kPrimaryColor,
@@ -291,16 +337,16 @@ Widget memberNameText(BuildContext context) {
   );
 }
 
-Widget memberTypeText(BuildContext context) {
+Widget memberTypeText(BuildContext context,String memberType) {
   return Text(
-    'Verified User',
+    memberType,
     style: kSubTextStyle.copyWith(
       fontSize: 15,
     ),
   );
 }
 
-Widget memberDelete(BuildContext context) {
+Widget memberDelete(BuildContext context, String memberName) {
   return Padding(
     padding: const EdgeInsets.only(right: 20),
     child: IconButton(
@@ -309,7 +355,12 @@ Widget memberDelete(BuildContext context) {
         color: kRedColor,
         size: 30,
       ),
-      onPressed: () {},
+      onPressed: () {
+        _fire.deleteDependantMember(
+            uid: 'HpVdivf2z7MRwu4nppw8m6CVTpp1',
+            eventId: 'FS2N1B12Q1Fs3GURMUA0',
+            memberName: memberName);
+      },
     ),
   );
 }
