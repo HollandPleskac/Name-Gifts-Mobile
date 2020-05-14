@@ -13,6 +13,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   //List<String> eventsList = ['Pleskac Christmas List 2020', 'testing'];
   // get the variable below from shared prefs
+  // just to initialize the starting value of selectedEventDisplay
   String selectedEventDisplay = 'Pleskac Christmas List 2020';
   String selectedEvent;
 
@@ -118,8 +119,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       );
                     }
                     return Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: <Widget>[
-                        // TODO replace with png
                         Icon(
                           Icons.event,
                         ),
@@ -131,18 +132,17 @@ class _HomeScreenState extends State<HomeScreen> {
                             isExpanded: true,
                             underline: SizedBox(),
                             icon: Container(
-                              width: 10,
-                              height: 10,
-                              //TODO FIX THIS IMMEDIATLY SO ANNOYING
-                              child: Center(
-                                child: Icon(Icons.arrow_drop_down),
-                              ),
+                              margin: EdgeInsets.only(top: 2),
+                              child: Icon(Icons.arrow_drop_down),
                             ),
+
                             value: selectedEvent,
                             items: dropdownEvents,
                             onChanged: (newEventSelected) {
                               setState(() {
+                                // you actually need two varialbles (selectedEvent and selectedEventDisplay) to get the dropdown to work ??
                                 this.selectedEvent = newEventSelected;
+                                this.selectedEventDisplay = newEventSelected;
                               });
                             },
                             // this hint needs to come from shared preferences
@@ -161,6 +161,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 }),
           ),
 
+          //                                 Example of a dropdown with a list instead of firebase
           // Container(
           //   margin: EdgeInsets.symmetric(horizontal: 20),
           //   padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
