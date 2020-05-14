@@ -75,62 +75,91 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          ///
-          ///
-          ///
-          StreamBuilder<QuerySnapshot>(
-              stream: Firestore.instance
-                  .collection("user data")
-                  .document('HpVdivf2z7MRwu4nppw8m6CVTpp1')
-                  .collection('my events')
-                  .snapshots(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData)
-                  return Text("Loading.....");
-                else {
-                  List<DropdownMenuItem> dropdownEvents = [];
-                  for (int i = 0; i < snapshot.data.documents.length; i++) {
-                    DocumentSnapshot documentSnapshot = snapshot.data.documents[i];
-                    dropdownEvents.add(
-                      DropdownMenuItem(
-                        child: Text(
-                          documentSnapshot['event name'],
-                          style: TextStyle(color: Color(0xff11b719)),
+          ////
+          ////
+          ////
+          Container(
+            margin: EdgeInsets.symmetric(horizontal: 20),
+            padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+            height: 60,
+            width: double.infinity,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(25),
+              border: Border.all(
+                color: Color(0xFFE5E5E5),
+              ),
+            ),
+            child: StreamBuilder<QuerySnapshot>(
+                stream: Firestore.instance
+                    .collection("user data")
+                    .document('HpVdivf2z7MRwu4nppw8m6CVTpp1')
+                    .collection('my events')
+                    .snapshots(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData)
+                    return Text("Loading.....");
+                  else {
+                    List<DropdownMenuItem> dropdownEvents = [];
+                    for (int i = 0; i < snapshot.data.documents.length; i++) {
+                      DocumentSnapshot documentSnapshot =
+                          snapshot.data.documents[i];
+                      dropdownEvents.add(
+                        DropdownMenuItem(
+                          child: Text(
+                            documentSnapshot['event name'],
+                            style: kSubTextStyle.copyWith(
+                              color: kPrimaryColor,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                          value: "${documentSnapshot['event name']}",
                         ),
-                        value: "${documentSnapshot['event name']}",
-                      ),
+                      );
+                    }
+                    return Row(
+                      children: <Widget>[
+                        // TODO replace with png
+                        Icon(
+                          Icons.event,
+                        ),
+                        SizedBox(
+                          width: 20,
+                        ),
+                        Expanded(
+                          child: DropdownButton(
+                            isExpanded: true,
+                            underline: SizedBox(),
+                            icon: Container(
+                              width: 10,
+                              height: 10,
+                              //TODO FIX THIS IMMEDIATLY SO ANNOYING
+                              child: Center(
+                                child: Icon(Icons.arrow_drop_down),
+                              ),
+                            ),
+                            value: selectedEvent,
+                            items: dropdownEvents,
+                            onChanged: (newEventSelected) {
+                              setState(() {
+                                this.selectedEvent = newEventSelected;
+                              });
+                            },
+                            // this hint needs to come from shared preferences
+                            // shared prefs will show the currently selected event when the user signs in
+                            hint: Text(
+                              selectedEventDisplay,
+                              style: TextStyle(
+                                color: Colors.black,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
                     );
                   }
-                  return Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: <Widget>[
-                      Icon(Icons.cake, size: 25.0, color: Color(0xff11b719)),
-                      SizedBox(width: 50.0),
-                      DropdownButton(
-                        items: dropdownEvents,
-                        onChanged: (currencyValue) {
-                          final snackBar = SnackBar(
-                            content: Text(
-                              'Selected Currency value is $currencyValue',
-                              style: TextStyle(color: Color(0xff11b719)),
-                            ),
-                          );
-                          Scaffold.of(context).showSnackBar(snackBar);
-                          setState(() {
-                            selectedEvent = currencyValue;
-                          });
-                        },
-                        value: selectedEvent,
-                        isExpanded: false,
-                        hint: new Text(
-                          "Choose Currency Type",
-                          style: TextStyle(color: Color(0xff11b719)),
-                        ),
-                      ),
-                    ],
-                  );
-                }
-              }),
+                }),
+          ),
 
           // Container(
           //   margin: EdgeInsets.symmetric(horizontal: 20),
@@ -146,40 +175,34 @@ class _HomeScreenState extends State<HomeScreen> {
           //   ),
           //   child: Row(
           //     children: <Widget>[
-          //       SvgPicture.asset('assets/icons/maps-and-flags.svg'),
+          //       Icon(Icons.perm_camera_mic),
           //       SizedBox(
           //         width: 20,
           //       ),
-
-          //       ///
-          //       ///
-
-          //       ///
-          //       ///
-          //       // Expanded(
-          //       //   child: DropdownButton<String>(
-          //       //     isExpanded: true,
-          //       //     underline: SizedBox(),
-          //       //     icon: Container(
-          //       //       width: 10,
-          //       //       height: 10,
-          //       //       child: SvgPicture.asset("assets/icons/dropdown.svg"),
-          //       //     ),
-          //       //     value: _currentSelectedItem,
-          //       //     items: eventsList
-          //       //         .map<DropdownMenuItem<String>>((String dropDownItem) {
-          //       //       return DropdownMenuItem<String>(
-          //       //         value: dropDownItem,
-          //       //         child: Text(dropDownItem),
-          //       //       );
-          //       //     }).toList(),
-          //       //     onChanged: (String newValueSelected) {
-          //       //       setState(() {
-          //       //         this._currentSelectedItem = newValueSelected;
-          //       //       });
-          //       //     },
-          //       //   ),
-          //       // ),
+          //       Expanded(
+          //         child: DropdownButton<String>(
+          //           isExpanded: true,
+          //           underline: SizedBox(),
+          //           icon: Container(
+          //             width: 10,
+          //             height: 10,
+          //             child: Icon(Icons.arrow_drop_down),
+          //           ),
+          //           value: selectedEventDisplay,
+          //           items: eventsList
+          //               .map<DropdownMenuItem<String>>((String dropDownItem) {
+          //             return DropdownMenuItem<String>(
+          //               value: dropDownItem,
+          //               child: Text(dropDownItem),
+          //             );
+          //           }).toList(),
+          //           onChanged: (String newValueSelected) {
+          //             setState(() {
+          //               this.selectedEvent = newValueSelected;
+          //             });
+          //           },
+          //         ),
+          //       ),
           //     ],
           //   ),
           // ),
