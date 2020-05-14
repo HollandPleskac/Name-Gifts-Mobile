@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../constant.dart';
+
+final Firestore _firestore = Firestore.instance;
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -10,13 +11,10 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List<String> eventsList = [
-    'Pleskac Christmas List 2020',
-    'Mom\'s Birthday',
-    'Dad\'s Birthday',
-    'Holland\s Birthday'
-  ];
-  String _currentSelectedItem = 'Pleskac Christmas List 2020';
+  //List<String> eventsList = ['Pleskac Christmas List 2020', 'testing'];
+  // get the variable below from shared prefs
+  String selectedEventDisplay = 'Pleskac Christmas List 2020';
+  String selectedEvent;
 
   @override
   Widget build(BuildContext context) {
@@ -61,7 +59,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           child: Wrap(
                             children: <Widget>[
                               Text(
-                                _currentSelectedItem,
+                                selectedEventDisplay,
                                 style: kHeadingTextStyle.copyWith(
                                     color: Colors.white),
                               ),
@@ -76,51 +74,115 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
             ),
           ),
-          Container(
-            margin: EdgeInsets.symmetric(horizontal: 20),
-            padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-            height: 60,
-            width: double.infinity,
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(25),
-              border: Border.all(
-                color: Color(0xFFE5E5E5),
-              ),
-            ),
-            child: Row(
-              children: <Widget>[
-                SvgPicture.asset('assets/icons/maps-and-flags.svg'),
-                SizedBox(
-                  width: 20,
-                ),
-                Expanded(
-                  child: DropdownButton<String>(
-                    isExpanded: true,
-                    underline: SizedBox(),
-                    icon: Container(
-                      width: 10,
-                      height: 10,
-                      child: SvgPicture.asset("assets/icons/dropdown.svg"),
-                    ),
-                    value: _currentSelectedItem,
-                    items: eventsList
-                        .map<DropdownMenuItem<String>>((String dropDownItem) {
-                      return DropdownMenuItem<String>(
-                        value: dropDownItem,
-                        child: Text(dropDownItem),
-                      );
-                    }).toList(),
-                    onChanged: (String newValueSelected) {
-                      setState(() {
-                        this._currentSelectedItem = newValueSelected;
-                      });
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
+
+          ///
+          ///
+          ///
+          StreamBuilder<QuerySnapshot>(
+              stream: Firestore.instance
+                  .collection("user data")
+                  .document('HpVdivf2z7MRwu4nppw8m6CVTpp1')
+                  .collection('my events')
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData)
+                  return Text("Loading.....");
+                else {
+                  List<DropdownMenuItem> dropdownEvents = [];
+                  for (int i = 0; i < snapshot.data.documents.length; i++) {
+                    DocumentSnapshot documentSnapshot = snapshot.data.documents[i];
+                    dropdownEvents.add(
+                      DropdownMenuItem(
+                        child: Text(
+                          documentSnapshot['event name'],
+                          style: TextStyle(color: Color(0xff11b719)),
+                        ),
+                        value: "${documentSnapshot['event name']}",
+                      ),
+                    );
+                  }
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      Icon(Icons.cake, size: 25.0, color: Color(0xff11b719)),
+                      SizedBox(width: 50.0),
+                      DropdownButton(
+                        items: dropdownEvents,
+                        onChanged: (currencyValue) {
+                          final snackBar = SnackBar(
+                            content: Text(
+                              'Selected Currency value is $currencyValue',
+                              style: TextStyle(color: Color(0xff11b719)),
+                            ),
+                          );
+                          Scaffold.of(context).showSnackBar(snackBar);
+                          setState(() {
+                            selectedEvent = currencyValue;
+                          });
+                        },
+                        value: selectedEvent,
+                        isExpanded: false,
+                        hint: new Text(
+                          "Choose Currency Type",
+                          style: TextStyle(color: Color(0xff11b719)),
+                        ),
+                      ),
+                    ],
+                  );
+                }
+              }),
+
+          // Container(
+          //   margin: EdgeInsets.symmetric(horizontal: 20),
+          //   padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+          //   height: 60,
+          //   width: double.infinity,
+          //   decoration: BoxDecoration(
+          //     color: Colors.white,
+          //     borderRadius: BorderRadius.circular(25),
+          //     border: Border.all(
+          //       color: Color(0xFFE5E5E5),
+          //     ),
+          //   ),
+          //   child: Row(
+          //     children: <Widget>[
+          //       SvgPicture.asset('assets/icons/maps-and-flags.svg'),
+          //       SizedBox(
+          //         width: 20,
+          //       ),
+
+          //       ///
+          //       ///
+
+          //       ///
+          //       ///
+          //       // Expanded(
+          //       //   child: DropdownButton<String>(
+          //       //     isExpanded: true,
+          //       //     underline: SizedBox(),
+          //       //     icon: Container(
+          //       //       width: 10,
+          //       //       height: 10,
+          //       //       child: SvgPicture.asset("assets/icons/dropdown.svg"),
+          //       //     ),
+          //       //     value: _currentSelectedItem,
+          //       //     items: eventsList
+          //       //         .map<DropdownMenuItem<String>>((String dropDownItem) {
+          //       //       return DropdownMenuItem<String>(
+          //       //         value: dropDownItem,
+          //       //         child: Text(dropDownItem),
+          //       //       );
+          //       //     }).toList(),
+          //       //     onChanged: (String newValueSelected) {
+          //       //       setState(() {
+          //       //         this._currentSelectedItem = newValueSelected;
+          //       //       });
+          //       //     },
+          //       //   ),
+          //       // ),
+          //     ],
+          //   ),
+          // ),
           SizedBox(height: 20),
           Padding(
             padding: EdgeInsets.symmetric(horizontal: 20),
@@ -136,7 +198,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             style: kTitleTextstyle,
                           ),
                           TextSpan(
-                            text: _currentSelectedItem,
+                            text: selectedEventDisplay,
                             style: TextStyle(
                               color: kTextLightColor,
                             ),
