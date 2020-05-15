@@ -16,6 +16,7 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
   TextEditingController _displayNameForEventController =
       TextEditingController();
   TextEditingController _eventNameController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -78,12 +79,30 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
                 ),
               ),
             ),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 20),
+                child: selectedEvent(context, 'Pleskac Christmas List 2020'),
+              ),
+            ),
+            SizedBox(
+              height: 20,
+            ),
+            topBar(
+              context,
+              _eventNameController,
+              _displayNameForEventController,
+            ),
+            SizedBox(
+              height: 20,
+            ),
 
             ///
             ///
             ///
             Container(
-              height: 350,
+              height: 230,
               child: StreamBuilder(
                 stream: _firestore
                     .collection("user data")
@@ -137,88 +156,6 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
           ],
         ),
       ),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 50),
-        child: FloatingActionButton(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-          elevation: 0,
-          backgroundColor: kGreenColor,
-          child: Icon(
-            Icons.add,
-            size: 30,
-            color: Colors.white,
-          ),
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                  title: Text(
-                    'Create an Event',
-                    style: kHeadingTextStyle,
-                  ),
-                  content: Container(
-                    height: 150,
-                    child: Column(
-                      children: <Widget>[
-                        displayNameInput(
-                          context: context,
-                          controller: _eventNameController,
-                          icon: Icon(
-                            Icons.near_me,
-                            color: kPrimaryColor,
-                          ),
-                          hintText: 'name of the event',
-                        ),
-                        displayNameInput(
-                          context: context,
-                          controller: _displayNameForEventController,
-                          icon: Icon(
-                            Icons.event_note,
-                            color: kPrimaryColor,
-                          ),
-                          hintText: 'your name in the new event',
-                        ),
-                        Align(
-                          alignment: Alignment.bottomRight,
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 10),
-                            child: RaisedButton(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                              color: kPrimaryColor,
-                              onPressed: () {
-                                _fire.createEvent(
-                                  uid: 'HpVdivf2z7MRwu4nppw8m6CVTpp1',
-                                  eventName: _eventNameController.text,
-                                  familyNameForEvent:
-                                      _displayNameForEventController.text,
-                                  host: 'hollandpleskac@gmail.com',
-                                );
-                                Navigator.pop(context);
-                              },
-                              child: Text(
-                                'Create',
-                                style: kSubTextStyle.copyWith(
-                                    color: Colors.white, fontSize: 17),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            );
-          },
-        ),
-      ),
     );
   }
 }
@@ -265,7 +202,7 @@ Widget event(BuildContext context, String eventName, String creationDate) {
       crossAxisAlignment: CrossAxisAlignment.center,
       children: <Widget>[
         Container(
-          height: 88,
+          height: 80,
           width: MediaQuery.of(context).size.width * 0.92,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.only(
@@ -276,8 +213,8 @@ Widget event(BuildContext context, String eventName, String creationDate) {
               begin: Alignment.topCenter,
               end: Alignment.bottomRight,
               colors: [
-                Color(0xFF3383CD),
-                kPrimaryColor.withOpacity(0.9),
+                kPrimaryColor,
+                Color.fromRGBO(42, 61, 243, 1).withOpacity(0.9),
               ],
             ),
           ),
@@ -320,7 +257,10 @@ Widget eventTitleText(BuildContext context, String eventName) {
 Widget eventSubText(BuildContext context, String creationDate) {
   return Text(
     creationDate,
-    style: kSubTextStyle.copyWith(color: Colors.white, fontSize: 15),
+    style: kSubTextStyle.copyWith(
+      color: Colors.white,
+      fontSize: 15,
+    ),
   );
 }
 
@@ -362,5 +302,139 @@ Widget displayNameInput({
         // dont need a validator - solving the issue is done in the return from the sign in function
       ),
     ),
+  );
+}
+
+Widget topBar(
+  BuildContext context,
+  TextEditingController _eventNameController,
+  TextEditingController _displayNameForEventController,
+) {
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+    children: <Widget>[
+      topBarButton(
+        context,
+        'Add',
+        () {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+                title: Text(
+                  'Create an Event',
+                  style: kHeadingTextStyle,
+                ),
+                content: Container(
+                  height: 150,
+                  child: Column(
+                    children: <Widget>[
+                      displayNameInput(
+                        context: context,
+                        controller: _eventNameController,
+                        icon: Icon(
+                          Icons.near_me,
+                          color: kPrimaryColor,
+                        ),
+                        hintText: 'name of the event',
+                      ),
+                      displayNameInput(
+                        context: context,
+                        controller: _displayNameForEventController,
+                        icon: Icon(
+                          Icons.event_note,
+                          color: kPrimaryColor,
+                        ),
+                        hintText: 'your name in the new event',
+                      ),
+                      Align(
+                        alignment: Alignment.bottomRight,
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 10),
+                          child: RaisedButton(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                            color: kPrimaryColor,
+                            onPressed: () {
+                              _fire.createEvent(
+                                uid: 'HpVdivf2z7MRwu4nppw8m6CVTpp1',
+                                eventName: _eventNameController.text,
+                                familyNameForEvent:
+                                    _displayNameForEventController.text,
+                                host: 'hollandpleskac@gmail.com',
+                              );
+                              Navigator.pop(context);
+                            },
+                            child: Text(
+                              'Create',
+                              style: kSubTextStyle.copyWith(
+                                  color: Colors.white, fontSize: 17),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+      topBarButton(
+        context,
+        'Invite',
+        () {},
+      ),
+    ],
+  );
+}
+
+Widget topBarButton(
+    BuildContext context, String buttonTitle, Function onPressFunction) {
+  return InkWell(
+    child: Container(
+      height: 40,
+      width: 160,
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(30),
+          color: Color.fromRGBO(42, 61, 243, 1).withOpacity(0.9)),
+      child: Center(
+        child: Text(
+          buttonTitle,
+          style: kSubTextStyle.copyWith(
+            color: Colors.white,
+          ),
+        ),
+      ),
+    ),
+    onTap: onPressFunction,
+  );
+}
+
+Widget selectedEvent(BuildContext context, selectedEvent) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        "Selected Event",
+        style: kTitleTextstyle.copyWith(
+          color: Colors.black,
+          fontWeight: FontWeight.w500,
+          fontSize: 28,
+        ),
+      ),
+      Text(
+        selectedEvent,
+        style: kTitleTextstyle.copyWith(
+          fontSize: 18,
+          color: Colors.black,
+          fontWeight: FontWeight.w400,
+        ),
+      ),
+    ],
   );
 }
