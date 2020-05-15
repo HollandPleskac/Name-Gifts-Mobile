@@ -253,15 +253,53 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           Container(
             height: 250,
-            child: ListView(
-              scrollDirection: Axis.horizontal,
-              physics: BouncingScrollPhysics(),
-              children: <Widget>[
-                family(context),
-                family(context),
-              ],
+            child: StreamBuilder(
+              stream: _firestore
+                  .collection("events")
+                  .document('7311581S106O0Y320444')
+                  .collection('event members')
+                  .snapshots(),
+              builder: (BuildContext context,
+                  AsyncSnapshot<QuerySnapshot> snapshot) {
+                if (snapshot.hasError) return Text('Error: ${snapshot.error}');
+
+                switch (snapshot.connectionState) {
+                  case ConnectionState.waiting:
+                    return Center(
+                      child: CircularProgressIndicator(),
+                    );
+                  default:
+                    return Center(
+                      child: ListView(
+                        scrollDirection: Axis.horizontal,
+                        physics: BouncingScrollPhysics(),
+                        children: snapshot.data.documents.map(
+                          (DocumentSnapshot document) {
+                            return family(
+                              context: context,
+                              familyName: document['family name'],
+                              gifts: document['gifts'],
+                              members: document['members'],
+                            );
+                          },
+                        ).toList(),
+                      ),
+                    );
+                }
+              },
             ),
           ),
+          // Container(
+          //   height: 250,
+          //   child: ListView(
+          //     scrollDirection: Axis.horizontal,
+          //     physics: BouncingScrollPhysics(),
+          //     children: <Widget>[
+          //       family(context),
+          //       family(context),
+          //     ],
+          //   ),
+          // ),
         ],
       ),
     );
@@ -286,7 +324,8 @@ class MyClipper extends CustomClipper<Path> {
   }
 }
 
-Widget family(BuildContext context) {
+Widget family(
+    {BuildContext context, String familyName, int gifts, int members}) {
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 10),
     child: Container(
@@ -321,7 +360,7 @@ Widget family(BuildContext context) {
                 profilePic(context),
                 Padding(
                   padding: const EdgeInsets.only(top: 30, left: 20),
-                  child: text(context, 'Doug and Janel'),
+                  child: text(context, familyName),
                 ),
               ],
             ),
@@ -329,11 +368,11 @@ Widget family(BuildContext context) {
               children: <Widget>[
                 Padding(
                   padding: const EdgeInsets.only(top: 45, left: 40),
-                  child: information(context, 4, 9),
+                  child: information(context, members, gifts),
                 ),
                 Padding(
                     padding: const EdgeInsets.only(top: 55, left: 95),
-                    child: viewButton(context, 'uid', 'eventId', 'displayName'))
+                    child: viewButton(context, 'uid', 'eventId', 'display name'))
               ],
             )
           ],
