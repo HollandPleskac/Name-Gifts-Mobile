@@ -16,6 +16,7 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
   TextEditingController _displayNameForEventController =
       TextEditingController();
   TextEditingController _eventNameController = TextEditingController();
+  TextEditingController _inviteController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -90,10 +91,11 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
               height: 20,
             ),
             topBar(
-              context,
-              _eventNameController,
-              _displayNameForEventController,
-            ),
+                context,
+                _eventNameController,
+                _displayNameForEventController,
+                _inviteController,
+                'Pleskac Christmas List 2020'),
             SizedBox(
               height: 20,
             ),
@@ -309,6 +311,8 @@ Widget topBar(
   BuildContext context,
   TextEditingController _eventNameController,
   TextEditingController _displayNameForEventController,
+  TextEditingController _inviteController,
+  String selectedEvent,
 ) {
   return Row(
     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -387,7 +391,74 @@ Widget topBar(
       topBarButton(
         context,
         'Invite',
-        () {},
+        () {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+                title: RichText(
+                  text: TextSpan(
+                    children: [
+                      TextSpan(
+                        text: "Invite to :\n",
+                        style: kHeadingTextStyle.copyWith(
+                          fontSize: 20,
+                          color: Colors.black,
+                        ),
+                      ),
+                      TextSpan(
+                        text: selectedEvent,
+                        style: kHeadingTextStyle.copyWith(
+                          color: Colors.black,
+                          fontSize: 20,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                content: Container(
+                  height: 100,
+                  child: Column(
+                    children: <Widget>[
+                      displayNameInput(
+                        context: context,
+                        controller: _inviteController,
+                        icon: Icon(
+                          Icons.email,
+                          color: kPrimaryColor,
+                        ),
+                        hintText: 'email of recipient',
+                      ),
+                      Align(
+                        alignment: Alignment.bottomRight,
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 10),
+                          child: RaisedButton(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                            color: kPrimaryColor,
+                            onPressed: () {
+                              //fire invite member
+                              Navigator.pop(context);
+                            },
+                            child: Text(
+                              'Invite',
+                              style: kSubTextStyle.copyWith(
+                                  color: Colors.white, fontSize: 17),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
       ),
     ],
   );

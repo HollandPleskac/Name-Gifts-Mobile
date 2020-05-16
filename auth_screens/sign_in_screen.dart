@@ -1,4 +1,6 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../constant.dart';
@@ -7,6 +9,7 @@ import '../logic/auth.dart';
 import '../tab_page.dart';
 
 final _auth = Auth();
+final Firestore _firestore = Firestore.instance;
 
 class SignInScreen extends StatefulWidget {
   @override
@@ -21,6 +24,35 @@ class _SignInScreenState extends State<SignInScreen> {
   var errorMessage = '';
 
   void login() async {
+    ///
+    ///
+    void setUid(String uidValue) async {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+
+      await prefs.setString(
+        'uid',
+        uidValue,
+      );
+    }
+
+    void setSelectedEvent() async {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String uid = prefs.getString('uid');
+
+      prefs.setString(
+        'selected event',
+        _firestore
+            .collection('user data')
+            .document(uid)
+            .get()
+            .then(
+              (docSnapShot) => docSnapShot.data['selected event'],
+            )
+            .toString(),
+      );
+    }
+    //
+    //
     List authPackage = await _auth.signIn(
       context,
       _emailController.text,
@@ -32,9 +64,15 @@ class _SignInScreenState extends State<SignInScreen> {
 
     if (authPackage[0] == 'success') {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString(
-        'uid',
-        authPackage[1],
+
+      // sets the uid - authPackage[1] is the uid
+      setUid(authPackage[1]);
+
+      // sets the selected event
+      setSelectedEvent();
+
+      print(
+        'FUNNNCTION : ' + prefs.getString('selected event'),
       );
       Navigator.push(
         context,
@@ -231,7 +269,8 @@ Widget signInErrorText(BuildContext context, String errorMessage) {
     errorMessage = 'There is no record of this user existing';
   } else if (errorMessage == 'Given String is empty or null') {
     errorMessage = 'Fill out all fields';
-  } else if (errorMessage == 'The password is invalid or the user does not have a password.') {
+  } else if (errorMessage ==
+      'The password is invalid or the user does not have a password.') {
     errorMessage = 'Wrong Password';
   }
   return Container(

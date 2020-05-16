@@ -133,7 +133,7 @@ class Fire {
       },
     );
 
-    //               transaction updates the count of total members in family
+    // transaction updates the count of total members in family
 
     final DocumentReference postRef = Firestore.instance
         .collection('events')
@@ -166,7 +166,7 @@ class Fire {
         .document(memberName)
         .delete();
 
-    //                                 transaction is called up update the amount of family members
+    // transaction is called up update the amount of family members
 
     final DocumentReference postRef = Firestore.instance
         .collection('events')
@@ -181,5 +181,91 @@ class Fire {
         });
       }
     });
+  }
+
+  ///
+  ///
+  ///                                   Invite a member to an Event
+  ///
+  ///
+
+  void sendInvite({
+    String uid,
+    String eventId,
+    String email,
+    String eventName,
+    String host,
+  }) async {
+    String uidOfPersonRecievingInvite = await _firestore
+        .collection('user data')
+        .where('email', isEqualTo: email)
+        .getDocuments()
+        .then(
+          (value) => value.documents[0].documentID.toString(),
+        );
+    // value is a query snapshot
+    // since there is one user per email there will only ever be one document in value
+    // we select the first value which is a document snapshot
+    // then we take the documentId from that which is the uidOfPersonRecievingInvite!
+
+    _firestore
+        .collection("user data")
+        .document(uidOfPersonRecievingInvite)
+        .collection('invites')
+        .document(eventId)
+        .setData(
+      {
+        'event name': eventName,
+        'host': host,
+        'invite type': 'event',
+        'host uid': uid,
+      },
+    );
+  }
+
+  void acceptInviteToEvent({
+    String eventName,
+    String uid,
+    String host,
+    String eventId,
+    String displayNameForEvent,
+  }) {
+    // adds the user to the event
+    _firestore
+        .collection("user data")
+        .document(uid)
+        .collection('my events')
+        .document(eventId)
+        .setData(
+      {
+        'event name': eventName,
+        'display name': displayNameForEvent,
+        'event type': 'event',
+      },
+    );
+
+    //initializes members value and gifts value as well as display name
+    _firestore
+        .collection('Events')
+        .document(eventId)
+        .collection('members')
+        .document(uid)
+        .setData(
+      {
+        'family name': displayNameForEvent,
+        'host': host,
+        'type': '',
+        'members': 0,
+        'gifts': 0,
+      },
+    );
+
+    // deletes the events out of invites list
+    _firestore
+        .collection("UserData")
+        .document(uid)
+        .collection('invites')
+        .document(eventId)
+        .delete();
   }
 }
