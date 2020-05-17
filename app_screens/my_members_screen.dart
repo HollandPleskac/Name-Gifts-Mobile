@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:name_gifts_v2/constant.dart';
 import 'package:polygon_clipper/polygon_clipper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../logic/fire.dart';
 
@@ -16,6 +17,56 @@ class MyMembersScreen extends StatefulWidget {
 
 class _MyMembersScreenState extends State<MyMembersScreen> {
   TextEditingController _memberNameController = TextEditingController();
+
+  String uid;
+  String selectedEventID;
+  String selectedEventName;
+
+  Future getUid() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    String userUid = prefs.getString('uid');
+
+    uid = userUid;
+    print(uid);
+  }
+
+  Future getSelectedEventID() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    String currentSelectedEventId = prefs.getString('selected event id');
+    print(currentSelectedEventId);
+
+    selectedEventID = currentSelectedEventId;
+  }
+
+  Future getSelectedEventName() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    String selectedEventName = prefs.getString('selected event name');
+    print(selectedEventName);
+
+    selectedEventName = selectedEventName;
+  }
+
+  @override
+  void initState() {
+    getUid().then((_) {
+      print("got uid");
+      getSelectedEventName().then((_) {
+        print("got selected event name");
+        getSelectedEventID().then(
+          (_) {
+            print('got the selected event id');
+            setState(() {});
+          },
+        );
+      });
+    });
+
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -90,9 +141,9 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
               child: StreamBuilder(
                 stream: _firestore
                     .collection("events")
-                    .document('FS2N1B12Q1Fs3GURMUA0')
+                    .document(selectedEventID)
                     .collection('event members')
-                    .document('HpVdivf2z7MRwu4nppw8m6CVTpp1')
+                    .document(uid)
                     .collection('family members')
                     .snapshots(),
                 builder: (BuildContext context,
@@ -110,7 +161,13 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
                         child: ListView(
                           children: snapshot.data.documents.map(
                             (DocumentSnapshot document) {
-                              return member(context, document.documentID,document['member type']);
+                              return member(
+                                context,
+                                document.documentID,
+                                document['member type'],
+                                uid,
+                                selectedEventID,
+                              );
                             },
                           ).toList(),
                         ),
@@ -189,8 +246,8 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
                               color: kPrimaryColor,
                               onPressed: () {
                                 _fire.addDependantMember(
-                                  uid: 'HpVdivf2z7MRwu4nppw8m6CVTpp1',
-                                  eventId: 'FS2N1B12Q1Fs3GURMUA0',
+                                  uid: uid,
+                                  eventId: selectedEventID,
                                   memberName: _memberNameController.text,
                                 );
                                 Navigator.pop(context);
@@ -244,7 +301,8 @@ class SClipper extends CustomClipper<Path> {
   }
 }
 
-Widget member(BuildContext context, String memberName,String memberType) {
+Widget member(BuildContext context, String memberName, String memberType,
+    String uid, String selectedEventID) {
   return Container(
     margin: EdgeInsets.only(left: 20, right: 20, bottom: 20),
     height: 80,
@@ -285,15 +343,15 @@ Widget member(BuildContext context, String memberName,String memberType) {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
                           Container(),
-                          memberNameText(context,memberName),
-                          memberTypeText(context,memberType),
+                          memberNameText(context, memberName),
+                          memberTypeText(context, memberType),
                           Container(),
                           // containers are here to make memberNameText and memberTypeText go nearer to each other
                         ],
                       ),
                     ],
                   ),
-                  memberDelete(context, memberName),
+                  memberDelete(context, memberName, uid, selectedEventID),
                 ],
               ),
             ),
@@ -327,7 +385,7 @@ Widget hexagon(BuildContext context) {
   );
 }
 
-Widget memberNameText(BuildContext context,String memberName) {
+Widget memberNameText(BuildContext context, String memberName) {
   return Text(
     memberName,
     style: kHeadingTextStyle.copyWith(
@@ -337,7 +395,7 @@ Widget memberNameText(BuildContext context,String memberName) {
   );
 }
 
-Widget memberTypeText(BuildContext context,String memberType) {
+Widget memberTypeText(BuildContext context, String memberType) {
   return Text(
     memberType,
     style: kSubTextStyle.copyWith(
@@ -346,7 +404,8 @@ Widget memberTypeText(BuildContext context,String memberType) {
   );
 }
 
-Widget memberDelete(BuildContext context, String memberName) {
+Widget memberDelete(BuildContext context, String memberName, String uid,
+    String selectedEventID) {
   return Padding(
     padding: const EdgeInsets.only(right: 20),
     child: IconButton(
@@ -357,9 +416,7 @@ Widget memberDelete(BuildContext context, String memberName) {
       ),
       onPressed: () {
         _fire.deleteDependantMember(
-            uid: 'HpVdivf2z7MRwu4nppw8m6CVTpp1',
-            eventId: 'FS2N1B12Q1Fs3GURMUA0',
-            memberName: memberName);
+            uid: uid, eventId: selectedEventID, memberName: memberName);
       },
     ),
   );

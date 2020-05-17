@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:name_gifts_v2/constant.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../logic/fire.dart';
 
@@ -17,6 +18,55 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
       TextEditingController();
   TextEditingController _eventNameController = TextEditingController();
   TextEditingController _inviteController = TextEditingController();
+
+  String uid;
+  String selectedEventID;
+  String selectedEventName;
+
+  Future getUid() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    String userUid = prefs.getString('uid');
+
+    uid = userUid;
+    print(uid);
+  }
+
+  Future getSelectedEventID() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    String currentSelectedEventId = prefs.getString('selected event id');
+    print(currentSelectedEventId);
+
+    selectedEventID = currentSelectedEventId;
+  }
+
+  Future getSelectedEventName() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    String selEventName = prefs.getString('selected event name');
+    print(selEventName);
+
+    selectedEventName = selEventName;
+  }
+
+  @override
+  void initState() {
+    getUid().then((_) {
+      print("got uid");
+      getSelectedEventName().then((_) {
+        print("got selected event name");
+        getSelectedEventID().then(
+          (_) {
+            print('got the selected event id');
+            setState(() {});
+          },
+        );
+      });
+    });
+
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,18 +134,20 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
               alignment: Alignment.centerLeft,
               child: Padding(
                 padding: const EdgeInsets.only(left: 20),
-                child: selectedEvent(context, 'Pleskac Christmas List 2020'),
+                child: selectedEvent(context, selectedEventName),
               ),
             ),
             SizedBox(
               height: 20,
             ),
             topBar(
-                context,
-                _eventNameController,
-                _displayNameForEventController,
-                _inviteController,
-                'Pleskac Christmas List 2020'),
+              context,
+              _eventNameController,
+              _displayNameForEventController,
+              _inviteController,
+              selectedEventName,
+              uid,
+            ),
             SizedBox(
               height: 20,
             ),
@@ -108,7 +160,7 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
               child: StreamBuilder(
                 stream: _firestore
                     .collection("user data")
-                    .document('HpVdivf2z7MRwu4nppw8m6CVTpp1')
+                    .document(uid)
                     .collection('my events')
                     .snapshots(),
                 builder: (BuildContext context,
@@ -130,6 +182,8 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
                                 context,
                                 document['event name'],
                                 document['creation date'],
+                                uid,
+                                selectedEventID,
                               );
                             },
                           ).toList(),
@@ -196,7 +250,13 @@ class SClipper extends CustomClipper<Path> {
   }
 }
 
-Widget event(BuildContext context, String eventName, String creationDate) {
+Widget event(
+  BuildContext context,
+  String eventName,
+  String creationDate,
+  String uid,
+  String selectedEventId,
+) {
   return Padding(
     padding: const EdgeInsets.only(bottom: 25),
     child: Row(
@@ -239,7 +299,11 @@ Widget event(BuildContext context, String eventName, String creationDate) {
               ),
               Padding(
                 padding: const EdgeInsets.only(right: 35),
-                child: eventDelete(context),
+                child: eventDelete(
+                  context,
+                  uid,
+                  selectedEventId,
+                ),
               ),
             ],
           ),
@@ -266,10 +330,10 @@ Widget eventSubText(BuildContext context, String creationDate) {
   );
 }
 
-Widget eventDelete(BuildContext context) {
+Widget eventDelete(BuildContext context, String uid, String eventId) {
   return IconButton(
     onPressed: () {
-      _fire.deleteEvent('HpVdivf2z7MRwu4nppw8m6CVTpp1', 'FS2N1B12Q1Fs3GURMUA0');
+      _fire.deleteEvent(uid, eventId);
     },
     icon: Icon(
       Icons.delete_forever,
@@ -312,7 +376,8 @@ Widget topBar(
   TextEditingController _eventNameController,
   TextEditingController _displayNameForEventController,
   TextEditingController _inviteController,
-  String selectedEvent,
+  String selectedEventName,
+  String uid,
 ) {
   return Row(
     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -364,7 +429,7 @@ Widget topBar(
                             color: kPrimaryColor,
                             onPressed: () {
                               _fire.createEvent(
-                                uid: 'HpVdivf2z7MRwu4nppw8m6CVTpp1',
+                                uid: uid,
                                 eventName: _eventNameController.text,
                                 familyNameForEvent:
                                     _displayNameForEventController.text,
@@ -409,7 +474,7 @@ Widget topBar(
                         ),
                       ),
                       TextSpan(
-                        text: selectedEvent,
+                        text: selectedEventName,
                         style: kHeadingTextStyle.copyWith(
                           color: Colors.black,
                           fontSize: 20,

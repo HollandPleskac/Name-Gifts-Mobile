@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
+import '../logic/fire.dart';
 import '../constant.dart';
 
 final Firestore _firestore = Firestore.instance;
+final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
+
+final _fire = Fire();
 
 class HomeScreen extends StatefulWidget {
   @override
@@ -12,10 +18,106 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   //List<String> eventsList = ['Pleskac Christmas List 2020', 'testing'];
-  // get the variable below from shared prefs
-  // just to initialize the starting value of selectedEventDisplay
-  String selectedEventDisplay = 'Pleskac Christmas List 2020';
+
+  //selectedeventDisplay - got w/function
+  //selectedEvent(NAME OF EVENT IMPORTANT) - always null in beginning changed with program (dropdown item selected)
+  //selectedEventId - got w/function
+  //uid - got w/function
+
+  String selectedEventDisplay;
   String selectedEvent;
+  String selectedEventID;
+  String uid;
+
+  Future getUid() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    String userUid = prefs.getString('uid');
+
+    uid = userUid;
+    print(uid);
+  }
+
+  Future getSelectedEventID() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    String currentSelectedEventId = prefs.getString('selected event id');
+    print(currentSelectedEventId);
+
+    selectedEventID = currentSelectedEventId;
+  }
+
+  Future getSelectedEventDisplay() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    String selectedEventName = prefs.getString('selected event name');
+    print(selectedEventName);
+
+    selectedEventDisplay = selectedEventName;
+  }
+
+  Future setSelectedEventIdForSharedPrefsAppAndFirebase(
+      String newSelectedEventName) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    //get the id from the name of the event selected
+    String newSelectedEventId = await _firestore
+        .collection('user data')
+        .document(uid)
+        .collection('my events')
+        .where('event name', isEqualTo: newSelectedEventName)
+        .getDocuments()
+        .then((value) => value.documents[0].documentID);
+
+    //sets new event id then updates that id in app
+    prefs.setString('selected event id', newSelectedEventId);
+
+    updateSelectedEventDataInApp(newSelectedEventId,newSelectedEventName);
+
+    //update the new selected event id in firebase
+    print('ID updated in firebase : ' + selectedEventID);
+    _fire.setSelectedEvent(uid, selectedEventID);
+
+    print('NEW SEL EVENT ID : ' + newSelectedEventId);
+  }
+
+  Future setSelectedEventNameForSharedPrefs(String newSelectedEventName) async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    prefs.setString('selected event name', newSelectedEventName);
+
+    print('NEW NAME : ' + newSelectedEventName);
+  }
+
+//TODO: fix error where this is updating twice
+  void updateSelectedEventDataInApp(newId, newEventName) {
+    setState(() {
+      selectedEventID = newId;
+
+      selectedEvent = newEventName;
+
+      selectedEventDisplay = newEventName;
+      print('NEW EVENT ID IN APP : ' + newId);
+    });
+  }
+
+  @override
+  void initState() {
+    getUid().then((_) {
+      print("got uid");
+      getSelectedEventDisplay().then((_) {
+        print("got selected event display");
+        getSelectedEventID().then(
+          (_) {
+            print('got the selected event id');
+            setState(() {});
+          },
+        );
+      });
+    });
+
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -94,7 +196,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: StreamBuilder<QuerySnapshot>(
                 stream: Firestore.instance
                     .collection("user data")
-                    .document('HpVdivf2z7MRwu4nppw8m6CVTpp1')
+                    .document(uid)
                     .collection('my events')
                     .snapshots(),
                 builder: (context, snapshot) {
@@ -135,18 +237,27 @@ class _HomeScreenState extends State<HomeScreen> {
                               margin: EdgeInsets.only(top: 2),
                               child: Icon(Icons.arrow_drop_down),
                             ),
-
                             value: selectedEvent,
                             items: dropdownEvents,
-                            onChanged: (newEventSelected) {
-                              setState(() {
-                                // you actually need two varialbles (selectedEvent and selectedEventDisplay) to get the dropdown to work ??
-                                this.selectedEvent = newEventSelected;
-                                this.selectedEventDisplay = newEventSelected;
-                              });
+                            onChanged: (newEventSelected) async {
+                              // setState(() {
+                              //   //newEventSelected is the name of the new event picked
+
+                              //   this.selectedEvent = newEventSelected;
+
+                              //   this.selectedEventDisplay = newEventSelected;
+                              // });
+                             
+
+                              //set id does not work and setSelctedEvent from fire also does not work
+                              await setSelectedEventNameForSharedPrefs(
+                                  newEventSelected);
+
+                              // pass the event name into this function
+                              await setSelectedEventIdForSharedPrefsAppAndFirebase(
+                                newEventSelected,
+                              );
                             },
-                            // this hint needs to come from shared preferences
-                            // shared prefs will show the currently selected event when the user signs in
                             hint: Text(
                               selectedEventDisplay,
                               style: TextStyle(
@@ -231,7 +342,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     Spacer(),
-                    //it can be annoying to skroll through 7 people so just search
+                    //it can be annoying to scroll through 7 people so just search
 
                     InkWell(
                       child: Text(
@@ -256,7 +367,7 @@ class _HomeScreenState extends State<HomeScreen> {
             child: StreamBuilder(
               stream: _firestore
                   .collection("events")
-                  .document('7311581S106O0Y320444')
+                  .document(selectedEventID)
                   .collection('event members')
                   .snapshots(),
               builder: (BuildContext context,
@@ -280,6 +391,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               familyName: document['family name'],
                               gifts: document['gifts'],
                               members: document['members'],
+                              uid: uid,
+                              selectedEvent: selectedEvent,
                             );
                           },
                         ).toList(),
@@ -324,8 +437,14 @@ class MyClipper extends CustomClipper<Path> {
   }
 }
 
-Widget family(
-    {BuildContext context, String familyName, int gifts, int members}) {
+Widget family({
+  BuildContext context,
+  String familyName,
+  int gifts,
+  int members,
+  String uid,
+  String selectedEvent,
+}) {
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 10),
     child: Container(
@@ -371,8 +490,13 @@ Widget family(
                   child: information(context, members, gifts),
                 ),
                 Padding(
-                    padding: const EdgeInsets.only(top: 55, left: 95),
-                    child: viewButton(context, 'uid', 'eventId', 'display name'))
+                  padding: const EdgeInsets.only(top: 55, left: 95),
+                  child: viewButton(
+                    context,
+                    uid,
+                    selectedEvent,
+                  ),
+                ),
               ],
             )
           ],
@@ -454,8 +578,7 @@ Widget information(BuildContext context, int members, int gifts) {
   );
 }
 
-Widget viewButton(
-    BuildContext context, String uid, String eventId, String displayName) {
+Widget viewButton(BuildContext context, String uid, String eventId) {
   return Container(
     height: MediaQuery.of(context).size.height * 0.05,
     width: MediaQuery.of(context).size.width * 0.2,

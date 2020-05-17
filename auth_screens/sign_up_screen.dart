@@ -24,23 +24,23 @@ class _SignUpScreenState extends State<SignUpScreen> {
   var errorMessage = '';
 
   void signin() async {
-    List authPackage = await _auth.signUp(
-      context,
-      _emailController.text,
-      _passwordController.text,
-    );
-
-    //authPackage[0] is either success or contains the error message
-    //authPackage[1] is either the user uid or null
-
-    if (authPackage[0] == 'success') {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString(
-        'uid',
-        authPackage[1],
+    if (_passwordController.text == _passwordConfirmController.text) {
+      List authPackage = await _auth.signUp(
+        context,
+        _emailController.text,
+        _passwordController.text,
       );
-      //checks if the password equals the confirm password
-      if (_passwordController == _passwordConfirmController) {
+
+      //authPackage[0] is either success or contains the error message
+      //authPackage[1] is either the user uid or null
+
+      if (authPackage[0] == 'success') {
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        await prefs.setString(
+          'uid',
+          authPackage[1],
+        );
+
         Navigator.push(
           context,
           MaterialPageRoute(
@@ -49,14 +49,14 @@ class _SignUpScreenState extends State<SignUpScreen> {
         );
       } else {
         setState(() {
-          errorMessage = 'Password and Confirm Password must be equal';
+          errorMessage = authPackage[0];
         });
+        print('error  ' + authPackage[0]);
       }
     } else {
       setState(() {
-        errorMessage = authPackage[0];
+        errorMessage = 'Password and Confirm Password must be equal';
       });
-      print('error  ' + authPackage[0]);
     }
   }
 

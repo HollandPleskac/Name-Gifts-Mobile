@@ -9,6 +9,7 @@ import '../logic/auth.dart';
 import '../tab_page.dart';
 
 final _auth = Auth();
+
 final Firestore _firestore = Firestore.instance;
 
 class SignInScreen extends StatefulWidget {
@@ -35,22 +36,25 @@ class _SignInScreenState extends State<SignInScreen> {
       );
     }
 
-    void setSelectedEvent() async {
+    void setSelectedEventId(String selectedEventId) async {
       SharedPreferences prefs = await SharedPreferences.getInstance();
-      String uid = prefs.getString('uid');
 
       prefs.setString(
-        'selected event',
-        _firestore
-            .collection('user data')
-            .document(uid)
-            .get()
-            .then(
-              (docSnapShot) => docSnapShot.data['selected event'],
-            )
-            .toString(),
+        'selected event id',
+        selectedEventId,
       );
     }
+
+    void setSelectedEventName(
+        String uid, String eventId, String eventName) async {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+
+      prefs.setString(
+        'selected event name',
+        eventName,
+      );
+    }
+
     //
     //
     List authPackage = await _auth.signIn(
@@ -68,12 +72,27 @@ class _SignInScreenState extends State<SignInScreen> {
       // sets the uid - authPackage[1] is the uid
       setUid(authPackage[1]);
 
-      // sets the selected event
-      setSelectedEvent();
+      String uid = prefs.getString('uid');
 
-      print(
-        'FUNNNCTION : ' + prefs.getString('selected event'),
-      );
+      String selectedEventId =
+          await _firestore.collection('user data').document(uid).get().then(
+                (docSnapShot) => docSnapShot.data['selected event'],
+              );
+
+      // sets the selected event id
+      setSelectedEventId(selectedEventId);
+
+      String selectedEventName = await _firestore
+          .collection('user data')
+          .document(uid)
+          .collection('my events')
+          .document(selectedEventId)
+          .get()
+          .then((docSnap) => docSnap.data['event name']);
+
+      //sets the selected event name
+      setSelectedEventName(uid, selectedEventId, selectedEventName);
+
       Navigator.push(
         context,
         MaterialPageRoute(

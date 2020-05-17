@@ -185,7 +185,7 @@ class Fire {
 
   ///
   ///
-  ///                                   Invite a member to an Event
+  ///                                   Invite a member to an Event / Accept an invite to an Event
   ///
   ///
 
@@ -246,9 +246,9 @@ class Fire {
 
     //initializes members value and gifts value as well as display name
     _firestore
-        .collection('Events')
+        .collection('events')
         .document(eventId)
-        .collection('members')
+        .collection('event members')
         .document(uid)
         .setData(
       {
@@ -262,7 +262,7 @@ class Fire {
 
     // deletes the events out of invites list
     _firestore
-        .collection("UserData")
+        .collection("user data")
         .document(uid)
         .collection('invites')
         .document(eventId)
