@@ -14,6 +14,7 @@ class Fire {
     _firestore.collection('user data').document(userUid).setData(
       {
         'email': email,
+        'selected event':'',
       },
     );
   }
@@ -268,4 +269,15 @@ class Fire {
         .document(eventId)
         .delete();
   }
+
+///
+///
+///                                                 Delete Account clear firebase
+///
+///
+ 
+void deleteAccountInDatabase(String uid) {
+  _firestore.collection('user data').document(uid).delete();
+}
+
 }

@@ -14,30 +14,27 @@ class Auth {
     BuildContext context,
     String email,
     String password,
-    
   ) async {
     try {
-    AuthResult _result = await _firebaseAuth.createUserWithEmailAndPassword(
-      email: email,
-      password: password,
-    );
+      AuthResult _result = await _firebaseAuth.createUserWithEmailAndPassword(
+        email: email,
+        password: password,
+      );
 
-    FirebaseUser _user = _result.user;
+      FirebaseUser _user = _result.user;
 
-    _fire.createAccount(_user.uid, email);
+      _fire.createAccount(_user.uid, email);
 
-    return ['success', _user.uid];
-    } catch(e) {
-      return[e.message.toString(),''];
+      return ['success', _user.uid];
+    } catch (e) {
+      return [e.message.toString(), ''];
     }
-    
   }
 
   Future<List> signIn(
     BuildContext context,
     String email,
     String password,
-
   ) async {
     try {
       AuthResult _result = await _firebaseAuth.signInWithEmailAndPassword(
@@ -53,6 +50,12 @@ class Auth {
   void signOut() async {
     await _firebaseAuth.signOut();
     print('signed out with email and password');
+  }
+
+  void deleteAccount() async {
+    var user = await _firebaseAuth.currentUser();
+
+    user.delete();
   }
 
   Future<void> sendEmailVerification() async {

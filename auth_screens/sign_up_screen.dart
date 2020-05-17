@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../constant.dart';
 
@@ -8,6 +9,7 @@ import '../logic/auth.dart';
 import '../tab_page.dart';
 
 final _auth = Auth();
+final _firestore = Firestore.instance;
 
 class SignUpScreen extends StatefulWidget {
   @override
@@ -23,7 +25,37 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   var errorMessage = '';
 
-  void signin() async {
+  void signup() async {
+    ///
+    ///
+    void setUid(String uidValue) async {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+
+      await prefs.setString(
+        'uid',
+        uidValue,
+      );
+    }
+
+    void setSelectedEventId(String selectedEventId) async {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+
+      prefs.setString(
+        'selected event id',
+        selectedEventId,
+      );
+    }
+
+    void setSelectedEventName(
+        String uid, String eventId, String eventName) async {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+
+      prefs.setString(
+        'selected event name',
+        eventName,
+      );
+    }
+
     if (_passwordController.text == _passwordConfirmController.text) {
       List authPackage = await _auth.signUp(
         context,
@@ -36,10 +68,30 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
       if (authPackage[0] == 'success') {
         SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setString(
-          'uid',
-          authPackage[1],
-        );
+
+        // sets the uid - authPackage[1] is the uid
+        setUid(authPackage[1]);
+
+        String uid = prefs.getString('uid');
+
+        String selectedEventId =
+            await _firestore.collection('user data').document(uid).get().then(
+                  (docSnapShot) => docSnapShot.data['selected event'],
+                );
+
+        // sets the selected event id
+        setSelectedEventId(selectedEventId);
+
+        String selectedEventName = await _firestore
+            .collection('user data')
+            .document(uid)
+            .collection('my events')
+            .document(selectedEventId)
+            .get()
+            .then((docSnap) => docSnap.data['event name']);
+
+        //sets the selected event name
+        setSelectedEventName(uid, selectedEventId, selectedEventName);
 
         Navigator.push(
           context,
@@ -93,7 +145,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   Icons.email,
                   color: kPrimaryColor,
                 ),
-                keyboardType: TextInputType.visiblePassword,
+                keyboardType: TextInputType.emailAddress,
+                obscureText: false,
               ),
               SizedBox(
                 height: 25,
@@ -107,6 +160,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   color: kPrimaryColor,
                 ),
                 keyboardType: TextInputType.visiblePassword,
+                obscureText: true,
               ),
               SizedBox(
                 height: 25,
@@ -120,6 +174,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                   color: kPrimaryColor,
                 ),
                 keyboardType: TextInputType.visiblePassword,
+                obscureText: true,
               ),
               SizedBox(
                 height: 8,
@@ -128,7 +183,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
               SizedBox(
                 height: 8,
               ),
-              signInButton(context, () => signin()),
+              signInButton(context, () => signup()),
               SizedBox(
                 height: 20,
               ),
@@ -158,6 +213,7 @@ Widget signInInput({
   Icon icon,
   TextInputType keyboardType,
   TextEditingController controller,
+  bool obscureText,
 }) {
   return Center(
     child: Container(
@@ -178,6 +234,7 @@ Widget signInInput({
           keyboardType: keyboardType,
           style: kSubTextStyle.copyWith(color: kPrimaryColor),
           autofocus: false,
+          obscureText: obscureText,
           decoration: InputDecoration(
             border: InputBorder.none,
             hintStyle: kSubTextStyle.copyWith(color: kPrimaryColor),

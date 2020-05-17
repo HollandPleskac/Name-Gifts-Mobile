@@ -1,6 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../auth_screens/sign_in_screen.dart';
+import '../logic/auth.dart';
 import '../constant.dart';
+import '../logic/fire.dart';
+
+final _auth = Auth();
+final _fire = Fire();
 
 class ProfileScreen extends StatefulWidget {
   @override
@@ -8,6 +15,31 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+
+  String uid;
+
+  Future getUid() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    String userUid = prefs.getString('uid');
+
+    uid = userUid;
+    print(uid);
+  }
+
+  @override
+  void initState() {
+    getUid().then((_) {
+      print("got uid");
+      setState(() {
+        
+      });
+    });
+
+    super.initState();
+  }
+
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -72,7 +104,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
               accountSignOut(context),
-              accountDelete(context),
+              accountDelete(context,uid),
             ],
           ),
         ],
@@ -115,7 +147,10 @@ class SClipper extends CustomClipper<Path> {
   }
 }
 
-Widget accountDelete(BuildContext context) {
+Widget accountDelete(
+  BuildContext context,
+  String uid,
+) {
   return Container(
     width: MediaQuery.of(context).size.width * 0.4,
     height: 60,
@@ -128,7 +163,22 @@ Widget accountDelete(BuildContext context) {
         'Delete Account',
         style: kSubTextStyle.copyWith(color: Colors.white, fontSize: 18),
       ),
-      onPressed: () {},
+      onPressed: () async {
+        _fire.deleteAccountInDatabase(uid);
+        _auth.deleteAccount();
+
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        prefs.setString('uid', '');
+        prefs.setString('selected event id', '');
+        prefs.setString('selected event name', '');
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SignInScreen(),
+          ),
+        );
+      },
     ),
   );
 }
@@ -146,7 +196,20 @@ Widget accountSignOut(BuildContext context) {
         'Sign Out',
         style: kSubTextStyle.copyWith(color: Colors.white, fontSize: 18),
       ),
-      onPressed: () {},
+      onPressed: () async {
+        _auth.signOut();
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        prefs.setString('uid', '');
+        prefs.setString('selected event id', '');
+        prefs.setString('selected event name', '');
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => SignInScreen(),
+          ),
+        );
+      },
     ),
   );
 }

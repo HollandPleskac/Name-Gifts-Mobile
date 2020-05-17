@@ -74,24 +74,34 @@ class _SignInScreenState extends State<SignInScreen> {
 
       String uid = prefs.getString('uid');
 
-      String selectedEventId =
-          await _firestore.collection('user data').document(uid).get().then(
-                (docSnapShot) => docSnapShot.data['selected event'],
-              );
-
       // sets the selected event id
-      setSelectedEventId(selectedEventId);
-
-      String selectedEventName = await _firestore
-          .collection('user data')
-          .document(uid)
-          .collection('my events')
-          .document(selectedEventId)
-          .get()
-          .then((docSnap) => docSnap.data['event name']);
+      try {
+        String selectedEventId =
+            await _firestore.collection('user data').document(uid).get().then(
+                  (docSnapShot) => docSnapShot.data['selected event'],
+                );
+        setSelectedEventId(selectedEventId);
+      } catch (e) {
+        String selectedEventId = 'no selected event';
+        setSelectedEventId(selectedEventId);
+      }
 
       //sets the selected event name
-      setSelectedEventName(uid, selectedEventId, selectedEventName);
+      try {
+        String selectedEventId = prefs.getString('selected event id');
+        String selectedEventName = await _firestore
+            .collection('user data')
+            .document(uid)
+            .collection('my events')
+            .document(selectedEventId)
+            .get()
+            .then((docSnap) => docSnap.data['event name']);
+        setSelectedEventName(uid, selectedEventId, selectedEventName);
+      } catch (e) {
+        String selectedEventId = prefs.getString('selected event id');
+        String selectedEventName = 'no selected event name';
+        setSelectedEventName(uid, selectedEventId, selectedEventName);
+      }
 
       Navigator.push(
         context,
@@ -143,7 +153,8 @@ class _SignInScreenState extends State<SignInScreen> {
                   Icons.email,
                   color: kPrimaryColor,
                 ),
-                keyboardType: TextInputType.visiblePassword,
+                keyboardType: TextInputType.emailAddress,
+                obscureText: false,
               ),
               SizedBox(
                 height: 25,
@@ -157,6 +168,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   color: kPrimaryColor,
                 ),
                 keyboardType: TextInputType.visiblePassword,
+                obscureText: true,
               ),
               SizedBox(
                 height: 8,
@@ -198,6 +210,7 @@ Widget signInInput({
   Icon icon,
   TextInputType keyboardType,
   TextEditingController controller,
+  bool obscureText,
 }) {
   return Center(
     child: Container(
@@ -218,6 +231,7 @@ Widget signInInput({
           keyboardType: keyboardType,
           style: kSubTextStyle.copyWith(color: kPrimaryColor),
           autofocus: false,
+          obscureText: obscureText,
           decoration: InputDecoration(
             border: InputBorder.none,
             hintStyle: kSubTextStyle.copyWith(color: kPrimaryColor),
@@ -226,6 +240,7 @@ Widget signInInput({
             ),
             hintText: hintText,
             icon: icon,
+            
           ),
           // dont need a validator - solving the issue is done in the return from the sign in function
         ),
