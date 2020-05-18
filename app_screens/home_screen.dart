@@ -24,7 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
   //selectedEventId - got w/function
   //uid - got w/function
 
-  String selectedEventDisplay;
+  String selectedEventDisplay = '';
   String selectedEvent;
   String selectedEventID;
   String uid;
@@ -39,28 +39,31 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future getSelectedEventID() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    String currentSelectedEventId = prefs.getString('selected event id');
-    print(currentSelectedEventId);
-
-    selectedEventID = currentSelectedEventId;
+    String eventID = await _firestore
+        .collection("user data")
+        .document(uid)
+        .get()
+        .then((documentSnapshot) => documentSnapshot.data['selected event']);
+    selectedEventID = eventID;
+    print(selectedEventID);
   }
 
   Future getSelectedEventDisplay() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String selEventName = await _firestore
+        .collection('user data')
+        .document(uid)
+        .collection('my events')
+        .document(selectedEventID)
+        .get()
+        .then(
+          (docSnap) => docSnap.data['event name'],
+        );
 
-    String selectedEventName = prefs.getString('selected event name');
-    print(selectedEventName);
-
-    selectedEventDisplay = selectedEventName;
+    selectedEventDisplay = selEventName;
+    print(selectedEventDisplay);
   }
 
-  Future setSelectedEventIdForSharedPrefsAppAndFirebase(
-      String newSelectedEventName) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    //get the id from the name of the event selected
+  Future setSelectedEventIdInFirestore(String newSelectedEventName) async {
     String newSelectedEventId = await _firestore
         .collection('user data')
         .document(uid)
@@ -69,27 +72,11 @@ class _HomeScreenState extends State<HomeScreen> {
         .getDocuments()
         .then((value) => value.documents[0].documentID);
 
-    //sets new event id then updates that id in app
-    prefs.setString('selected event id', newSelectedEventId);
+    updateSelectedEventDataInApp(newSelectedEventId, newSelectedEventName);
 
-    updateSelectedEventDataInApp(newSelectedEventId,newSelectedEventName);
-
-    //update the new selected event id in firebase
-    print('ID updated in firebase : ' + selectedEventID);
     _fire.setSelectedEvent(uid, selectedEventID);
-
-    print('NEW SEL EVENT ID : ' + newSelectedEventId);
   }
 
-  Future setSelectedEventNameForSharedPrefs(String newSelectedEventName) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    prefs.setString('selected event name', newSelectedEventName);
-
-    print('NEW NAME : ' + newSelectedEventName);
-  }
-
-//TODO: fix error where this is updating twice
   void updateSelectedEventDataInApp(newId, newEventName) {
     setState(() {
       selectedEventID = newId;
@@ -97,7 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
       selectedEvent = newEventName;
 
       selectedEventDisplay = newEventName;
-      print('NEW EVENT ID IN APP : ' + newId);
+      
     });
   }
 
@@ -105,9 +92,9 @@ class _HomeScreenState extends State<HomeScreen> {
   void initState() {
     getUid().then((_) {
       print("got uid");
-      getSelectedEventDisplay().then((_) {
+      getSelectedEventID().then((_) {
         print("got selected event display");
-        getSelectedEventID().then(
+        getSelectedEventDisplay().then(
           (_) {
             print('got the selected event id');
             setState(() {});
@@ -247,14 +234,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
                               //   this.selectedEventDisplay = newEventSelected;
                               // });
-                             
 
                               //set id does not work and setSelctedEvent from fire also does not work
-                              await setSelectedEventNameForSharedPrefs(
-                                  newEventSelected);
 
                               // pass the event name into this function
-                              await setSelectedEventIdForSharedPrefsAppAndFirebase(
+                              await setSelectedEventIdInFirestore(
                                 newEventSelected,
                               );
                             },

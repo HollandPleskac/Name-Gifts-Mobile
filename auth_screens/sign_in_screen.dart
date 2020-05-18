@@ -36,24 +36,7 @@ class _SignInScreenState extends State<SignInScreen> {
       );
     }
 
-    void setSelectedEventId(String selectedEventId) async {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
 
-      prefs.setString(
-        'selected event id',
-        selectedEventId,
-      );
-    }
-
-    void setSelectedEventName(
-        String uid, String eventId, String eventName) async {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-
-      prefs.setString(
-        'selected event name',
-        eventName,
-      );
-    }
 
     //
     //
@@ -67,41 +50,10 @@ class _SignInScreenState extends State<SignInScreen> {
     //authPackage[1] is either the user uid or null
 
     if (authPackage[0] == 'success') {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
 
       // sets the uid - authPackage[1] is the uid
       setUid(authPackage[1]);
 
-      String uid = prefs.getString('uid');
-
-      // sets the selected event id
-      try {
-        String selectedEventId =
-            await _firestore.collection('user data').document(uid).get().then(
-                  (docSnapShot) => docSnapShot.data['selected event'],
-                );
-        setSelectedEventId(selectedEventId);
-      } catch (e) {
-        String selectedEventId = 'no selected event';
-        setSelectedEventId(selectedEventId);
-      }
-
-      //sets the selected event name
-      try {
-        String selectedEventId = prefs.getString('selected event id');
-        String selectedEventName = await _firestore
-            .collection('user data')
-            .document(uid)
-            .collection('my events')
-            .document(selectedEventId)
-            .get()
-            .then((docSnap) => docSnap.data['event name']);
-        setSelectedEventName(uid, selectedEventId, selectedEventName);
-      } catch (e) {
-        String selectedEventId = prefs.getString('selected event id');
-        String selectedEventName = 'no selected event name';
-        setSelectedEventName(uid, selectedEventId, selectedEventName);
-      }
 
       Navigator.push(
         context,

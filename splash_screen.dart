@@ -21,14 +21,6 @@ class _SplashScreenState extends State<SplashScreen> {
     return uid;
   }
 
-  Future<String> getSelectedEventId() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    String selectedEvent = prefs.getString('selected event id');
-    print(selectedEvent);
-    return selectedEvent;
-  }
-
   @override
   void initState() {
     super.initState();
@@ -36,8 +28,7 @@ class _SplashScreenState extends State<SplashScreen> {
       Duration(seconds: 2),
       // () async => getUser() == null ||
       //         await getUser() == '' ||
-      //         await getSelectedEventId() == '' ||
-      //         await getSelectedEventId() == null
+      //         
       //     ? Navigator.push(
       //         context,
       //         MaterialPageRoute(

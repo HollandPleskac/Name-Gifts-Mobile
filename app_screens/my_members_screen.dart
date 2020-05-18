@@ -32,32 +32,39 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
   }
 
   Future getSelectedEventID() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-
-    String currentSelectedEventId = prefs.getString('selected event id');
-    print(currentSelectedEventId);
-
-    selectedEventID = currentSelectedEventId;
+    String eventID = await _firestore
+        .collection("user data")
+        .document(uid)
+        .get()
+        .then((documentSnapshot) => documentSnapshot.data['selected event']);
+    selectedEventID = eventID;
+    print(selectedEventID);
   }
 
   Future getSelectedEventName() async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String selEventName = await _firestore
+        .collection('user data')
+        .document(uid)
+        .collection('my events')
+        .document(selectedEventID)
+        .get()
+        .then(
+          (docSnap) => docSnap.data['event name'],
+        );
 
-    String selectedEventName = prefs.getString('selected event name');
+    selectedEventName = selEventName;
     print(selectedEventName);
-
-    selectedEventName = selectedEventName;
   }
 
   @override
   void initState() {
     getUid().then((_) {
       print("got uid");
-      getSelectedEventName().then((_) {
-        print("got selected event name");
-        getSelectedEventID().then(
+      getSelectedEventID().then((_) {
+        print("got selected event id");
+        getSelectedEventName().then(
           (_) {
-            print('got the selected event id');
+            print('got the selected event name');
             setState(() {});
           },
         );
