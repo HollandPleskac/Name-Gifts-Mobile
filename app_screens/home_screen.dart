@@ -28,6 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
   String selectedEvent;
   String selectedEventID;
   String uid;
+  String isEventData = 'loading';
 
   Future getUid() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -49,18 +50,44 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future getSelectedEventDisplay() async {
-    String selEventName = await _firestore
-        .collection('user data')
-        .document(uid)
-        .collection('my events')
-        .document(selectedEventID)
-        .get()
-        .then(
-          (docSnap) => docSnap.data['event name'],
-        );
+    try {
+      String selEventName = await _firestore
+          .collection('user data')
+          .document(uid)
+          .collection('my events')
+          .document(selectedEventID)
+          .get()
+          .then(
+            (docSnap) => docSnap.data['event name'],
+          );
 
-    selectedEventDisplay = selEventName;
-    print(selectedEventDisplay);
+      selectedEventDisplay = selEventName;
+      print(selectedEventDisplay);
+    } catch (e) {
+      selectedEventDisplay = 'No events';
+    }
+  }
+
+  Future checkEventData(eventId) async {
+    try {
+      String data = await _firestore
+          .collection("events")
+          .document(eventId)
+          .collection('event members')
+          .getDocuments()
+          .then(
+            (value) => value.documents[0].documentID.toString(),
+          );
+      if (data == null) {
+        isEventData = null;
+      } else {
+        isEventData = 'true';
+      }
+    } catch (_) {
+      isEventData = null;
+    }
+
+    // value is a query snapshot of documents
   }
 
   Future setSelectedEventIdInFirestore(String newSelectedEventName) async {
@@ -84,7 +111,6 @@ class _HomeScreenState extends State<HomeScreen> {
       selectedEvent = newEventName;
 
       selectedEventDisplay = newEventName;
-      
     });
   }
 
@@ -97,7 +123,12 @@ class _HomeScreenState extends State<HomeScreen> {
         getSelectedEventDisplay().then(
           (_) {
             print('got the selected event id');
-            setState(() {});
+            checkEventData(selectedEventID).then(
+              (_) {
+                print('checked event data');
+                setState(() {});
+              },
+            );
           },
         );
       });
@@ -348,43 +379,48 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           Container(
             height: 250,
-            child: StreamBuilder(
-              stream: _firestore
-                  .collection("events")
-                  .document(selectedEventID)
-                  .collection('event members')
-                  .snapshots(),
-              builder: (BuildContext context,
-                  AsyncSnapshot<QuerySnapshot> snapshot) {
-                if (snapshot.hasError) return Text('Error: ${snapshot.error}');
+            child: isEventData == null
+                ? Center(
+                    child: Text('No events'),
+                  )
+                : StreamBuilder(
+                    stream: _firestore
+                        .collection("events")
+                        .document(selectedEventID)
+                        .collection('event members')
+                        .snapshots(),
+                    builder: (BuildContext context,
+                        AsyncSnapshot<QuerySnapshot> snapshot) {
+                      if (snapshot.hasError)
+                        return Text('Error: ${snapshot.error}');
 
-                switch (snapshot.connectionState) {
-                  case ConnectionState.waiting:
-                    return Center(
-                      child: CircularProgressIndicator(),
-                    );
-                  default:
-                    return Center(
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
-                        physics: BouncingScrollPhysics(),
-                        children: snapshot.data.documents.map(
-                          (DocumentSnapshot document) {
-                            return family(
-                              context: context,
-                              familyName: document['family name'],
-                              gifts: document['gifts'],
-                              members: document['members'],
-                              uid: uid,
-                              selectedEvent: selectedEvent,
-                            );
-                          },
-                        ).toList(),
-                      ),
-                    );
-                }
-              },
-            ),
+                      switch (snapshot.connectionState) {
+                        case ConnectionState.waiting:
+                          return Center(
+                            child: CircularProgressIndicator(),
+                          );
+                        default:
+                          return Center(
+                            child: ListView(
+                              scrollDirection: Axis.horizontal,
+                              physics: BouncingScrollPhysics(),
+                              children: snapshot.data.documents.map(
+                                (DocumentSnapshot document) {
+                                  return family(
+                                    context: context,
+                                    familyName: document['family name'],
+                                    gifts: document['gifts'],
+                                    members: document['members'],
+                                    uid: uid,
+                                    selectedEvent: selectedEvent,
+                                  );
+                                },
+                              ).toList(),
+                            ),
+                          );
+                      }
+                    },
+                  ),
           ),
           // Container(
           //   height: 250,

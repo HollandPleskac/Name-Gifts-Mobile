@@ -21,6 +21,7 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
   String uid;
   String selectedEventID;
   String selectedEventName;
+  String isMembersData = 'loading';
 
   Future getUid() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -42,18 +43,46 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
   }
 
   Future getSelectedEventName() async {
-    String selEventName = await _firestore
-        .collection('user data')
-        .document(uid)
-        .collection('my events')
-        .document(selectedEventID)
-        .get()
-        .then(
-          (docSnap) => docSnap.data['event name'],
-        );
+    try {
+      String selEventName = await _firestore
+          .collection('user data')
+          .document(uid)
+          .collection('my events')
+          .document(selectedEventID)
+          .get()
+          .then(
+            (docSnap) => docSnap.data['event name'],
+          );
 
-    selectedEventName = selEventName;
-    print(selectedEventName);
+      selectedEventName = selEventName;
+      print(selectedEventName);
+    } catch (e) {
+      selectedEventName = 'No Events';
+    }
+  }
+
+  Future checkMembersData(eventId, memberUid) async {
+    try {
+      String data = await _firestore
+          .collection("events")
+          .document(eventId)
+          .collection('event members')
+          .document(memberUid)
+          .collection('family members')
+          .getDocuments()
+          .then(
+            (value) => value.documents[0].documentID.toString(),
+          );
+      if (data == null) {
+        isMembersData = null;
+      } else {
+        isMembersData = 'true';
+      }
+    } catch (_) {
+      isMembersData = null;
+    }
+
+    // value is a query snapshot of documents
   }
 
   @override
@@ -65,7 +94,12 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
         getSelectedEventName().then(
           (_) {
             print('got the selected event name');
-            setState(() {});
+            checkMembersData(selectedEventID, uid).then(
+              (_) {
+                print('checked member data');
+                setState(() {});
+              },
+            );
           },
         );
       });
@@ -145,43 +179,57 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
 
             Container(
               height: 320,
-              child: StreamBuilder(
-                stream: _firestore
-                    .collection("events")
-                    .document(selectedEventID)
-                    .collection('event members')
-                    .document(uid)
-                    .collection('family members')
-                    .snapshots(),
-                builder: (BuildContext context,
-                    AsyncSnapshot<QuerySnapshot> snapshot) {
-                  if (snapshot.hasError)
-                    return Text('Error: ${snapshot.error}');
+              child: isMembersData == null
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Container(),
+                          Text(
+                              'When you add or invite members, they will be visible here'),
+                          Text('Remember to add yourself'),
+                          Container(),
+                          Container(),
+                        ],
+                      ),
+                    )
+                  : StreamBuilder(
+                      stream: _firestore
+                          .collection("events")
+                          .document(selectedEventID)
+                          .collection('event members')
+                          .document(uid)
+                          .collection('family members')
+                          .snapshots(),
+                      builder: (BuildContext context,
+                          AsyncSnapshot<QuerySnapshot> snapshot) {
+                        if (snapshot.hasError)
+                          return Text('Error: ${snapshot.error}');
 
-                  switch (snapshot.connectionState) {
-                    case ConnectionState.waiting:
-                      return Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    default:
-                      return Center(
-                        child: ListView(
-                          children: snapshot.data.documents.map(
-                            (DocumentSnapshot document) {
-                              return member(
-                                context,
-                                document.documentID,
-                                document['member type'],
-                                uid,
-                                selectedEventID,
-                              );
-                            },
-                          ).toList(),
-                        ),
-                      );
-                  }
-                },
-              ),
+                        switch (snapshot.connectionState) {
+                          case ConnectionState.waiting:
+                            return Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          default:
+                            return Center(
+                              child: ListView(
+                                children: snapshot.data.documents.map(
+                                  (DocumentSnapshot document) {
+                                    return member(
+                                      context,
+                                      document.documentID,
+                                      document['member type'],
+                                      uid,
+                                      selectedEventID,
+                                    );
+                                  },
+                                ).toList(),
+                              ),
+                            );
+                        }
+                      },
+                    ),
             ),
 
             ///

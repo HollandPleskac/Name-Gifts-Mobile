@@ -22,6 +22,7 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
   String uid;
   String selectedEventID;
   String selectedEventName = '';
+  String isUserEvents = 'loading';
 
   Future getUid() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -43,6 +44,7 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
   }
 
   Future getSelectedEventName() async {
+    try{
     String selEventName = await _firestore
         .collection('user data')
         .document(uid)
@@ -55,8 +57,32 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
 
     selectedEventName = selEventName;
     print(selectedEventName);
+    } catch(e) {
+      selectedEventName = 'No selected event';
+    }
   }
 
+  Future checkUsersEvents(memberUid) async {
+    try {
+      String data = await _firestore
+          .collection("user data")
+          .document(uid)
+          .collection('my events')
+          .getDocuments()
+          .then(
+            (value) => value.documents[0].documentID.toString(),
+          );
+      if (data == null) {
+        isUserEvents = null;
+      } else {
+        isUserEvents = 'true';
+      }
+    } catch (_) {
+      isUserEvents = null;
+    }
+
+    // value is a query snapshot of documents
+  }
 
   @override
   void initState() {
@@ -67,7 +93,12 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
         getSelectedEventName().then(
           (_) {
             print('got the selected event id');
-            setState(() {});
+            checkUsersEvents(uid).then(
+              (_) {
+                print('checked for user events');
+                setState(() {});
+              },
+            );
           },
         );
       });
@@ -165,41 +196,53 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
             ///
             Container(
               height: 230,
-              child: StreamBuilder(
-                stream: _firestore
-                    .collection("user data")
-                    .document(uid)
-                    .collection('my events')
-                    .snapshots(),
-                builder: (BuildContext context,
-                    AsyncSnapshot<QuerySnapshot> snapshot) {
-                  if (snapshot.hasError)
-                    return Text('Error: ${snapshot.error}');
+              child: isUserEvents == null
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          Container(),
+                          Text('You have no events'),
+                          Text('Your events will be displayed here'),
+                          Container(),
+                        ],
+                      ),
+                    )
+                  : StreamBuilder(
+                      stream: _firestore
+                          .collection("user data")
+                          .document(uid)
+                          .collection('my events')
+                          .snapshots(),
+                      builder: (BuildContext context,
+                          AsyncSnapshot<QuerySnapshot> snapshot) {
+                        if (snapshot.hasError)
+                          return Text('Error: ${snapshot.error}');
 
-                  switch (snapshot.connectionState) {
-                    case ConnectionState.waiting:
-                      return Center(
-                        child: CircularProgressIndicator(),
-                      );
-                    default:
-                      return Center(
-                        child: ListView(
-                          children: snapshot.data.documents.map(
-                            (DocumentSnapshot document) {
-                              return event(
-                                context,
-                                document['event name'],
-                                document['creation date'],
-                                uid,
-                                selectedEventID,
-                              );
-                            },
-                          ).toList(),
-                        ),
-                      );
-                  }
-                },
-              ),
+                        switch (snapshot.connectionState) {
+                          case ConnectionState.waiting:
+                            return Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          default:
+                            return Center(
+                              child: ListView(
+                                children: snapshot.data.documents.map(
+                                  (DocumentSnapshot document) {
+                                    return event(
+                                      context,
+                                      document['event name'],
+                                      document['creation date'],
+                                      uid,
+                                      selectedEventID,
+                                    );
+                                  },
+                                ).toList(),
+                              ),
+                            );
+                        }
+                      },
+                    ),
             ),
 
             ///
