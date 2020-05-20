@@ -81,21 +81,21 @@ class _SignInScreenState extends State<SignInScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               SizedBox(
-                height: 80,
+                height: MediaQuery.of(context).size.height*0.08,
               ),
               signInText(context),
               SizedBox(
-                height: 40,
+                height: MediaQuery.of(context).size.height*0.04,
               ),
               Hero(
                 tag: 'dash',
                 child: Container(
-                  width: 200,
+                  width: MediaQuery.of(context).size.width*0.45,
                   child: Image.asset('assets/images/gift.png'),
                 ),
               ),
               SizedBox(
-                height: 60,
+                height: MediaQuery.of(context).size.height*0.07,
               ),
               signInInput(
                 context: context,
@@ -109,7 +109,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 obscureText: false,
               ),
               SizedBox(
-                height: 25,
+                height: MediaQuery.of(context).size.height*0.03,
               ),
               signInInput(
                 context: context,
@@ -123,18 +123,18 @@ class _SignInScreenState extends State<SignInScreen> {
                 obscureText: true,
               ),
               SizedBox(
-                height: 8,
+                height: MediaQuery.of(context).size.height*0.009,
               ),
               signInErrorText(context, errorMessage),
               SizedBox(
-                height: 8,
+                height: MediaQuery.of(context).size.height*0.009,
               ),
               signInButton(
                 context,
                 () => login(),
               ),
               SizedBox(
-                height: 20,
+                height: MediaQuery.of(context).size.height*0.028,
               ),
               signInAlreadyHaveAccount(context),
             ],
@@ -176,7 +176,7 @@ Widget signInInput({
         color: Colors.white,
       ),
       child: Padding(
-        padding: const EdgeInsets.only(left: 20),
+        padding: EdgeInsets.only(left: MediaQuery.of(context).size.width*0.045),
         child: TextFormField(
           controller: controller,
           maxLines: 1,
@@ -206,7 +206,7 @@ Widget signInButton(
   Function loginFunction,
 ) {
   return Container(
-    height: 50,
+    height: MediaQuery.of(context).size.height*0.061,
     width: MediaQuery.of(context).size.width * 0.6,
     child: FlatButton(
       shape: RoundedRectangleBorder(

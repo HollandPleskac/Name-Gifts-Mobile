@@ -117,7 +117,7 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
             ClipPath(
               clipper: SClipper(),
               child: Container(
-                height: 350,
+                height: MediaQuery.of(context).size.height*0.4,
                 width: double.infinity,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -506,7 +506,7 @@ Widget topBar(
       ),
       topBarButton(
         context,
-        'Invite',
+        'Invite to Event',
         () {
           showDialog(
             context: context,

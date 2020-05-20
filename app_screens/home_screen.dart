@@ -145,8 +145,13 @@ class _HomeScreenState extends State<HomeScreen> {
           ClipPath(
             clipper: MyClipper(),
             child: Container(
-              padding: EdgeInsets.only(left: 40, top: 50, right: 20),
-              height: 350,
+              padding: EdgeInsets.only(
+                left: MediaQuery.of(context).size.width * 0.1,
+                top: MediaQuery.of(context).size.height * 0.06,
+                right: MediaQuery.of(context).size.width * 0.05,
+              ),
+              height: MediaQuery.of(context).size.height * 0.4,
+              //height:350
               width: double.infinity,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -164,7 +169,7 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  SizedBox(height: 20),
+                  SizedBox(height: MediaQuery.of(context).size.height * 0.02),
                   Expanded(
                     child: Stack(
                       children: <Widget>[
@@ -175,8 +180,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         //   alignment: Alignment.topCenter,
                         // ),
                         Positioned(
-                          top: 60,
-                          left: 80,
+                          top: MediaQuery.of(context).size.height * 0.075,
+                          left: MediaQuery.of(context).size.width * 0.15,
                           child: Wrap(
                             children: <Widget>[
                               Text(
@@ -200,9 +205,14 @@ class _HomeScreenState extends State<HomeScreen> {
           ////
           ////
           Container(
-            margin: EdgeInsets.symmetric(horizontal: 20),
-            padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-            height: 60,
+            margin: EdgeInsets.symmetric(
+              horizontal: MediaQuery.of(context).size.width * 0.045,
+            ),
+            padding: EdgeInsets.symmetric(
+              vertical: MediaQuery.of(context).size.height * 0.02,
+              horizontal: MediaQuery.of(context).size.width * 0.045,
+            ),
+            height: MediaQuery.of(context).size.height * 0.073,
             width: double.infinity,
             decoration: BoxDecoration(
               color: Colors.white,
@@ -245,7 +255,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           Icons.event,
                         ),
                         SizedBox(
-                          width: 20,
+                          width: MediaQuery.of(context).size.width * 0.045,
                         ),
                         Expanded(
                           child: DropdownButton(
@@ -333,9 +343,10 @@ class _HomeScreenState extends State<HomeScreen> {
           //     ],
           //   ),
           // ),
-          SizedBox(height: 20),
+          SizedBox(height: MediaQuery.of(context).size.height * 0.028),
           Padding(
-            padding: EdgeInsets.symmetric(horizontal: 20),
+            padding: EdgeInsets.symmetric(
+                horizontal: MediaQuery.of(context).size.width * 0.045),
             child: Column(
               children: <Widget>[
                 Row(
@@ -375,10 +386,10 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
           SizedBox(
-            height: 20,
+            height: MediaQuery.of(context).size.height * 0.028,
           ),
           Container(
-            height: 250,
+            height: MediaQuery.of(context).size.height * 0.31,
             child: isEventData == null
                 ? Center(
                     child: Text('No events'),
@@ -466,10 +477,10 @@ Widget family({
   String selectedEvent,
 }) {
   return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 10),
+    padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width*0.022),
     child: Container(
-      height: 250,
-      width: MediaQuery.of(context).size.width * 0.95,
+      // height: 250, do not need height because height is calculated from somewhere else
+       width: MediaQuery.of(context).size.width * 0.95,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(20),
@@ -498,7 +509,7 @@ Widget family({
               children: <Widget>[
                 profilePic(context),
                 Padding(
-                  padding: const EdgeInsets.only(top: 30, left: 20),
+                  padding: EdgeInsets.only(top: MediaQuery.of(context).size.height*0.04, left: MediaQuery.of(context).size.width*0.05),
                   child: text(context, familyName),
                 ),
               ],
@@ -506,11 +517,11 @@ Widget family({
             Row(
               children: <Widget>[
                 Padding(
-                  padding: const EdgeInsets.only(top: 45, left: 40),
+                  padding: EdgeInsets.only(top: MediaQuery.of(context).size.height*0.05, left: MediaQuery.of(context).size.width*0.09),
                   child: information(context, members, gifts),
                 ),
                 Padding(
-                  padding: const EdgeInsets.only(top: 55, left: 95),
+                  padding: EdgeInsets.only(top: MediaQuery.of(context).size.height* 0.066, left: MediaQuery.of(context).size.width*0.21),
                   child: viewButton(
                     context,
                     uid,
@@ -543,7 +554,7 @@ Widget profilePic(BuildContext context) {
       child: Image.network(
         //'https://i.pinimg.com/originals/9e/e8/9f/9ee89f7623acc78fc33fc0cbaf3a014b.jpg',
         'https://free4kwallpapers.com/uploads/originals/2020/01/07/animated-colorful-landscape-wallpaper.jpg',
-        height: 250,
+        //height: 250, do not need a height
         width: double.infinity,
         fit: BoxFit.cover,
       ),

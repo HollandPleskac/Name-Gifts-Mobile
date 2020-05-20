@@ -17,7 +17,7 @@ class _InvitationScreenState extends State<InvitationScreen> {
           ClipPath(
             clipper: SClipper(),
             child: Container(
-              height: 350,
+              height: MediaQuery.of(context).size.height*0.4,
               width: double.infinity,
               decoration: BoxDecoration(
                 gradient: LinearGradient(

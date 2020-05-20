@@ -118,7 +118,7 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
             ClipPath(
               clipper: SClipper(),
               child: Container(
-                height: 350,
+                height: MediaQuery.of(context).size.height*0.4,
                 width: double.infinity,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -178,12 +178,13 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
             ///
 
             Container(
-              height: 320,
+              height: 325,
               child: isMembersData == null
                   ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
+                          Container(),
                           Container(),
                           Text(
                               'When you add or invite members, they will be visible here'),
@@ -231,6 +232,15 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
                       },
                     ),
             ),
+            SizedBox(
+              height: 5,
+            ),
+            memberOptionBar(
+              context: context,
+              uid: uid,
+              memberNameController: _memberNameController,
+              selectedEventID: selectedEventID,
+            ),
 
             ///
             ///
@@ -251,77 +261,6 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
             //   ),
             // ),
           ],
-        ),
-      ),
-      floatingActionButton: Padding(
-        padding: const EdgeInsets.only(bottom: 50),
-        child: FloatingActionButton(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(15),
-          ),
-          elevation: 0,
-          backgroundColor: kRedColor,
-          child: Icon(
-            Icons.add,
-            size: 30,
-            color: Colors.white,
-          ),
-          onPressed: () {
-            showDialog(
-              context: context,
-              builder: (BuildContext context) {
-                return AlertDialog(
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10)),
-                  title: Text(
-                    'Add a member',
-                    style: kHeadingTextStyle,
-                  ),
-                  content: Container(
-                    height: 100,
-                    child: Column(
-                      children: <Widget>[
-                        memberNameInput(
-                          context: context,
-                          controller: _memberNameController,
-                          icon: Icon(
-                            Icons.person_add,
-                            color: kPrimaryColor,
-                          ),
-                          hintText: 'member name',
-                        ),
-                        Align(
-                          alignment: Alignment.bottomRight,
-                          child: Padding(
-                            padding: const EdgeInsets.only(right: 10),
-                            child: RaisedButton(
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                              color: kPrimaryColor,
-                              onPressed: () {
-                                _fire.addDependantMember(
-                                  uid: uid,
-                                  eventId: selectedEventID,
-                                  memberName: _memberNameController.text,
-                                );
-                                Navigator.pop(context);
-                              },
-                              child: Text(
-                                'Add',
-                                style: kSubTextStyle.copyWith(
-                                    color: Colors.white, fontSize: 17),
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            );
-          },
         ),
       ),
     );
@@ -502,5 +441,106 @@ Widget memberNameInput({
         // dont need a validator - solving the issue is done in the return from the sign in function
       ),
     ),
+  );
+}
+
+Widget memberOptionBar({
+  BuildContext context,
+  TextEditingController memberNameController,
+  String uid,
+  String selectedEventID,
+}) {
+  return Row(
+    mainAxisAlignment: MainAxisAlignment.spaceAround,
+    children: [
+      memberOptionButton(
+        context,
+        'Add Member',
+        () => showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10)),
+              title: Text(
+                'Add a member',
+                style: kHeadingTextStyle,
+              ),
+              content: Container(
+                height: 100,
+                child: Column(
+                  children: <Widget>[
+                    memberNameInput(
+                      context: context,
+                      controller: memberNameController,
+                      icon: Icon(
+                        Icons.person_add,
+                        color: kPrimaryColor,
+                      ),
+                      hintText: 'member name',
+                    ),
+                    Align(
+                      alignment: Alignment.bottomRight,
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 10),
+                        child: RaisedButton(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                          color: kPrimaryColor,
+                          onPressed: () {
+                            _fire.addDependantMember(
+                              uid: uid,
+                              eventId: selectedEventID,
+                              memberName: memberNameController.text,
+                            );
+                            Navigator.pop(context);
+                          },
+                          child: Text(
+                            'Add',
+                            style: kSubTextStyle.copyWith(
+                                color: Colors.white, fontSize: 17),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+      memberOptionButton(
+        context,
+        'Invite Member',
+        () {},
+      ),
+    ],
+  );
+}
+
+Widget memberOptionButton(
+  BuildContext context,
+  String buttonTitle,
+  Function onPressFunction,
+) {
+  return InkWell(
+    child: Container(
+      height: 40,
+      width: 160,
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(25),
+          color: Color.fromRGBO(42, 61, 243, 1).withOpacity(0.9)),
+      child: Center(
+        child: Text(
+          buttonTitle,
+          style: kSubTextStyle.copyWith(
+            color: Colors.white,
+          ),
+        ),
+      ),
+    ),
+    onTap: onPressFunction,
   );
 }

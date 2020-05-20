@@ -9,7 +9,6 @@ class Fire {
   ///                              Create an Account
   ///
   ///
-
   void createAccount(String userUid, String email) {
     _firestore.collection('user data').document(userUid).setData(
       {
@@ -26,7 +25,6 @@ class Fire {
   ///                                Create an Event
   ///
   ///
-
   void createEvent(
       {String eventName, String uid, String host, String familyNameForEvent}) {
     var _randomString = randomAlphaNumeric(20);
@@ -92,7 +90,6 @@ class Fire {
   ///                            Remove Event
   ///
   ///
-
   void deleteEvent(String uid, String eventId) async {
     _firestore
         .collection('user data')
@@ -120,7 +117,6 @@ class Fire {
   ///                                            Add a member to event
   ///
   ///
-
   void addDependantMember({String memberName, String uid, String eventId}) {
     _firestore
         .collection('events')
@@ -158,7 +154,6 @@ class Fire {
   ///                                       remove a member
   ///
   ///
-
   void deleteDependantMember({String memberName, String uid, String eventId}) {
     _firestore
         .collection('events')
@@ -191,7 +186,6 @@ class Fire {
   ///                                   Invite a member to an Event / Accept an invite to an Event
   ///
   ///
-
   void sendInvite({
     String uid,
     String eventId,

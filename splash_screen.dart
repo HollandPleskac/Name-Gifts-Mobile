@@ -61,7 +61,7 @@ class _SplashScreenState extends State<SplashScreen> {
             Hero(
               tag: 'dash',
               child: Container(
-                width: 200,
+                width: MediaQuery.of(context).size.width*0.45,
                 child: Image.asset('assets/images/gift.png'),
               ),
             ),

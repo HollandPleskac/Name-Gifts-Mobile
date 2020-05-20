@@ -84,18 +84,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               SizedBox(
-                height: 60,
+                height: MediaQuery.of(context).size.height*0.07,
               ),
               signInText(context),
               SizedBox(
-                height: 40,
+                height: MediaQuery.of(context).size.height*0.0425,
               ),
               Container(
-                width: 200,
+                width: MediaQuery.of(context).size.width*0.45,
                 child: Image.asset('assets/images/gift.png'),
               ),
               SizedBox(
-                height: 60,
+                height: MediaQuery.of(context).size.height*0.0725,
               ),
               signInInput(
                 context: context,
@@ -109,7 +109,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 obscureText: false,
               ),
               SizedBox(
-                height: 25,
+                height: MediaQuery.of(context).size.height*0.03,
               ),
               signInInput(
                 context: context,
@@ -123,7 +123,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 obscureText: true,
               ),
               SizedBox(
-                height: 25,
+                height: MediaQuery.of(context).size.height*0.03,
               ),
               signInInput(
                 context: context,
@@ -137,15 +137,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 obscureText: true,
               ),
               SizedBox(
-                height: 8,
+                height: MediaQuery.of(context).size.height*0.009,
               ),
               signUpErrorText(context, errorMessage),
               SizedBox(
-                height: 8,
+                height: MediaQuery.of(context).size.height*0.009,
               ),
               signInButton(context, () => signup()),
               SizedBox(
-                height: 20,
+                height: MediaQuery.of(context).size.height*0.024,
               ),
               signInAlreadyHaveAccount(context),
             ],
@@ -187,7 +187,7 @@ Widget signInInput({
         color: Colors.white,
       ),
       child: Padding(
-        padding: const EdgeInsets.only(left: 20),
+        padding: EdgeInsets.only(left: MediaQuery.of(context).size.width*0.045),
         child: TextFormField(
           controller: controller,
           maxLines: 1,
@@ -213,7 +213,7 @@ Widget signInInput({
 
 Widget signInButton(BuildContext context, Function signinFunction) {
   return Container(
-    height: 50,
+    height: MediaQuery.of(context).size.height*0.061,
     width: MediaQuery.of(context).size.width * 0.6,
     child: FlatButton(
       shape: RoundedRectangleBorder(
