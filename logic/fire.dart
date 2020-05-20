@@ -14,10 +14,12 @@ class Fire {
     _firestore.collection('user data').document(userUid).setData(
       {
         'email': email,
-        'selected event':'',
+        'selected event':'no event',
       },
     );
   }
+  // does not work without setting some random string to selected event
+  // just setting 'selected event':'' does not work
 
   ///
   ///
