@@ -477,10 +477,11 @@ Widget family({
   String selectedEvent,
 }) {
   return Padding(
-    padding: EdgeInsets.symmetric(horizontal: MediaQuery.of(context).size.width*0.022),
+    padding: EdgeInsets.symmetric(
+        horizontal: MediaQuery.of(context).size.width * 0.022),
     child: Container(
       // height: 250, do not need height because height is calculated from somewhere else
-       width: MediaQuery.of(context).size.width * 0.95,
+      width: MediaQuery.of(context).size.width * 0.95,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.only(
           bottomLeft: Radius.circular(20),
@@ -501,38 +502,87 @@ Widget family({
             topLeft: Radius.circular(20),
           ),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
+        child: Stack(
+          children: [
             Row(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
+              children: [
                 profilePic(context),
                 Padding(
-                  padding: EdgeInsets.only(top: MediaQuery.of(context).size.height*0.04, left: MediaQuery.of(context).size.width*0.05),
+                  padding: EdgeInsets.only(
+                    left: MediaQuery.of(context).size.width * 0.047,
+                    top: MediaQuery.of(context).size.height * 0.04,
+                  ),
                   child: text(context, familyName),
                 ),
               ],
             ),
-            Row(
-              children: <Widget>[
-                Padding(
-                  padding: EdgeInsets.only(top: MediaQuery.of(context).size.height*0.05, left: MediaQuery.of(context).size.width*0.09),
-                  child: information(context, members, gifts),
-                ),
-                Padding(
-                  padding: EdgeInsets.only(top: MediaQuery.of(context).size.height* 0.066, left: MediaQuery.of(context).size.width*0.21),
-                  child: viewButton(
-                    context,
-                    uid,
-                    selectedEvent,
-                  ),
-                ),
-              ],
-            )
+            Positioned(
+              bottom: MediaQuery.of(context).size.height * 0.038,
+              left: MediaQuery.of(context).size.width * 0.088,
+              child: information(context, members, gifts),
+            ),
+            Positioned(
+              bottom: MediaQuery.of(context).size.width * 0.035,
+              right: MediaQuery.of(context).size.width * 0.04,
+              child: viewButton(context, uid, selectedEvent),
+            ),
           ],
         ),
       ),
+      // child: Card(
+      //   shape: RoundedRectangleBorder(
+      //     borderRadius: BorderRadius.only(
+      //       bottomLeft: Radius.circular(20),
+      //       topLeft: Radius.circular(20),
+      //     ),
+      //   ),
+      //   // child: Column(
+      //   //   crossAxisAlignment: CrossAxisAlignment.start,
+      //   //   children: <Widget>[
+      //   //     Row(
+      //   //       crossAxisAlignment: CrossAxisAlignment.start,
+      //   //       children: <Widget>[
+      //   //         profilePic(context),
+      //   //         Padding(
+      //   //           padding: EdgeInsets.only(
+      //   //               top: MediaQuery.of(context).size.height * 0.04,
+      //   //               left: MediaQuery.of(context).size.width * 0.05),
+      //   //           child: text(context, familyName),
+      //   //         ),
+      //   //       ],
+      //   //     ),
+
+      //   //     // SizedBox(height: 15,),
+      //   //     // Container(
+      //   //     //   child: Row(
+      //   //     //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      //   //     //     children: <Widget>[
+      //   //     //       Padding(
+      //   //     //         padding: EdgeInsets.only(
+      //   //     //           top: MediaQuery.of(context).size.height * 0.05,
+      //   //     //           left: MediaQuery.of(context).size.width * 0.09,
+      //   //     //         ),
+      //   //     //         child: information(context, members, gifts),
+      //   //     //       ),
+      //   //     //       Padding(
+      //   //     //         padding: EdgeInsets.only(
+      //   //     //           top: 35,
+      //   //     //           right: 20,
+
+      //   //     //         ),
+      //   //     //         child: viewButton(
+      //   //     //           context,
+      //   //     //           uid,
+      //   //     //           selectedEvent,
+      //   //     //         ),
+      //   //     //       ),
+      //   //     //     ],
+      //   //     //   ),
+      //   //     // )
+      //   //   ],
+      //   // ),
+      // ),
     ),
   );
 }
@@ -609,7 +659,7 @@ Widget information(BuildContext context, int members, int gifts) {
   );
 }
 
-Widget viewButton(BuildContext context, String uid, String eventId) {
+Widget viewButton(BuildContext context, String uid, String eventName) {
   return Container(
     height: MediaQuery.of(context).size.height * 0.05,
     width: MediaQuery.of(context).size.width * 0.2,
