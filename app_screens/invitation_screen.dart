@@ -105,12 +105,12 @@ class SClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     var path = new Path();
-    path.lineTo(0, size.height - 120);
-    var firstControlPoint = new Offset(size.width / 4, size.height - 120);
-    var firstEndPoint = new Offset(size.width / 2, size.height - 170);
+    path.lineTo(0, size.height - 80);
+    var firstControlPoint = new Offset(size.width / 4, size.height - 40);
+    var firstEndPoint = new Offset(size.width / 2, size.height - 85);
     var secondControlPoint =
-        new Offset(size.width - (size.width / 4), size.height - 220);
-    var secondEndPoint = new Offset(size.width, size.height - 160);
+        new Offset(size.width - (size.width / 4), size.height - 135);
+    var secondEndPoint = new Offset(size.width, size.height - 90);
 
     // var firstControlPoint = new Offset(size.width / 4, size.height - 120);
     // var firstEndPoint = new Offset(size.width / 2, size.height - 180);

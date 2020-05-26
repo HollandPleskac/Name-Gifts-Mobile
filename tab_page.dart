@@ -69,7 +69,7 @@ class _TabPageState extends State<TabPage> {
       iconSize: 24,
       padding: padding,
       icon: LineIcons.group,
-      text: 'Invitations',
+      text: 'Members',
     ));
 
     tabs.add(GButton(
@@ -91,7 +91,7 @@ class _TabPageState extends State<TabPage> {
       iconSize: 24,
       padding: padding,
       icon: LineIcons.leaf,
-      text: 'My Members',
+      text: 'Invitations',
     ));
 
     tabs.add(GButton(

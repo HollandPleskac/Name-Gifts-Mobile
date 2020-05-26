@@ -20,8 +20,9 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
 
   String uid;
   String selectedEventID;
-  String selectedEventName;
+  String selectedEventName = '';
   String isMembersData = 'loading';
+  String familyName;
 
   Future getUid() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -57,7 +58,7 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
       selectedEventName = selEventName;
       print(selectedEventName);
     } catch (e) {
-      selectedEventName = 'No Events';
+      selectedEventName = 'No Selected Event';
     }
   }
 
@@ -85,6 +86,23 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
     // value is a query snapshot of documents
   }
 
+  Future getFamilyName(String eventID, String uid) async {
+    try {
+      String famName = await _firestore
+          .collection("events")
+          .document(eventID)
+          .collection("event members")
+          .document(uid)
+          .get()
+          .then(
+            (docSnap) => docSnap.data['family name'],
+          );
+      familyName = famName;
+    } catch (e) {
+      familyName = '!@##56765@#asdfsd#@#No Fam Name@#7568@#@adsfsd#%@#%)(*&';
+    }
+  }
+
   @override
   void initState() {
     getUid().then((_) {
@@ -97,7 +115,12 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
             checkMembersData(selectedEventID, uid).then(
               (_) {
                 print('checked member data');
-                setState(() {});
+                getFamilyName(selectedEventID, uid).then(
+                  (_) {
+                    print('got family name');
+                    setState(() {});
+                  },
+                );
               },
             );
           },
@@ -118,7 +141,7 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
             ClipPath(
               clipper: SClipper(),
               child: Container(
-                height: MediaQuery.of(context).size.height*0.4,
+                height: MediaQuery.of(context).size.height * 0.4,
                 width: double.infinity,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -139,32 +162,27 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    SizedBox(height: 20),
+                    SizedBox(height: 90),
                     Expanded(
                       child: Stack(
                         children: <Widget>[
-                          // SvgPicture.asset(
-                          //   'assets/icons/Drcorona.svg',
-                          //   width: 210,
-                          //   fit: BoxFit.fitWidth,
-                          //   alignment: Alignment.topCenter,
-                          // ),
-
-                          Positioned(
-                            top: 75,
-                            left: 110,
-                            child: Wrap(
-                              children: <Widget>[
-                                Text(
-                                  'My Members',
-                                  style: kHeadingTextStyle.copyWith(
-                                      color: Colors.white),
-                                ),
-                              ],
+                          Align(
+                            alignment: Alignment.topCenter,
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                top: MediaQuery.of(context).size.height * 0.035,
+                              ),
+                              child: Text(
+                                selectedEventName == 'No Selected Event'
+                                    ? 'My Members'
+                                    : familyName == null
+                                        ? ''
+                                        : familyName.toString() + '\'s Members',
+                                style: kHeadingTextStyle.copyWith(
+                                    color: Colors.white),
+                              ),
                             ),
                           ),
-
-                          Container(), // dont know why this works ??
                         ],
                       ),
                     ),
@@ -173,13 +191,33 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
               ),
             ),
 
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 20),
+                child: selectedEvent(context, selectedEventName),
+              ),
+            ),
+            SizedBox(
+              height: 20,
+            ),
+            memberOptionBar(
+              context: context,
+              uid: uid,
+              memberNameController: _memberNameController,
+              selectedEventID: selectedEventID,
+            ),
+            SizedBox(
+              height: 20,
+            ),
+
             ///
             ///
             ///
 
             Container(
               height: 325,
-              child: isMembersData == null
+              child: isMembersData == null && selectedEventID != 'no event'
                   ? Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -194,53 +232,59 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
                         ],
                       ),
                     )
-                  : StreamBuilder(
-                      stream: _firestore
-                          .collection("events")
-                          .document(selectedEventID)
-                          .collection('event members')
-                          .document(uid)
-                          .collection('family members')
-                          .snapshots(),
-                      builder: (BuildContext context,
-                          AsyncSnapshot<QuerySnapshot> snapshot) {
-                        if (snapshot.hasError)
-                          return Text('Error: ${snapshot.error}');
+                  : selectedEventID == 'no event'
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Container(),
+                              Container(),
+                              Text(
+                                  'You must create an event first to add or invite members'),
+                              Container(),
+                              Container(),
+                            ],
+                          ),
+                        )
+                      : StreamBuilder(
+                          stream: _firestore
+                              .collection("events")
+                              .document(selectedEventID)
+                              .collection('event members')
+                              .document(uid)
+                              .collection('family members')
+                              .snapshots(),
+                          builder: (BuildContext context,
+                              AsyncSnapshot<QuerySnapshot> snapshot) {
+                            if (snapshot.hasError)
+                              return Text('Error: ${snapshot.error}');
 
-                        switch (snapshot.connectionState) {
-                          case ConnectionState.waiting:
-                            return Center(
-                              child: CircularProgressIndicator(),
-                            );
-                          default:
-                            return Center(
-                              child: ListView(
-                                children: snapshot.data.documents.map(
-                                  (DocumentSnapshot document) {
-                                    return member(
-                                      context,
-                                      document.documentID,
-                                      document['member type'],
-                                      uid,
-                                      selectedEventID,
-                                    );
-                                  },
-                                ).toList(),
-                              ),
-                            );
-                        }
-                      },
-                    ),
+                            switch (snapshot.connectionState) {
+                              case ConnectionState.waiting:
+                                return Center(
+                                  child: CircularProgressIndicator(),
+                                );
+                              default:
+                                return Center(
+                                  child: ListView(
+                                    children: snapshot.data.documents.map(
+                                      (DocumentSnapshot document) {
+                                        return member(
+                                          context,
+                                          document.documentID,
+                                          document['member type'],
+                                          uid,
+                                          selectedEventID,
+                                        );
+                                      },
+                                    ).toList(),
+                                  ),
+                                );
+                            }
+                          },
+                        ),
             ),
-            SizedBox(
-              height: 5,
-            ),
-            memberOptionBar(
-              context: context,
-              uid: uid,
-              memberNameController: _memberNameController,
-              selectedEventID: selectedEventID,
-            ),
+            
 
             ///
             ///
@@ -267,16 +311,38 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
   }
 }
 
+// class SClipper extends CustomClipper<Path> {
+//   @override
+//   Path getClip(Size size) {
+//     var path = new Path();
+//     path.lineTo(0, size.height - 80);
+//     var firstControlPoint = new Offset(size.width / 4, size.height - 120);
+//     var firstEndPoint = new Offset(size.width / 2, size.height - 180);
+//     var secondControlPoint =
+//         new Offset(size.width - (size.width / 4), size.height - 235);
+//     var secondEndPoint = new Offset(size.width, size.height - 230);
+
+//     path.quadraticBezierTo(firstControlPoint.dx, firstControlPoint.dy,
+//         firstEndPoint.dx, firstEndPoint.dy);
+//     path.quadraticBezierTo(secondControlPoint.dx, secondControlPoint.dy,
+//         secondEndPoint.dx, secondEndPoint.dy);
+
+//     path.lineTo(size.width, size.height / 3);
+//     path.lineTo(size.width, 0);
+//     path.close();
+//     return path;
+//   }
+
 class SClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     var path = new Path();
     path.lineTo(0, size.height - 80);
     var firstControlPoint = new Offset(size.width / 4, size.height - 120);
-    var firstEndPoint = new Offset(size.width / 2, size.height - 180);
+    var firstEndPoint = new Offset(size.width / 2, size.height - 90);
     var secondControlPoint =
-        new Offset(size.width - (size.width / 4), size.height - 235);
-    var secondEndPoint = new Offset(size.width, size.height - 230);
+        new Offset(size.width - (size.width / 4), size.height - 50);
+    var secondEndPoint = new Offset(size.width, size.height - 80);
 
     path.quadraticBezierTo(firstControlPoint.dx, firstControlPoint.dy,
         firstEndPoint.dx, firstEndPoint.dy);
@@ -288,6 +354,7 @@ class SClipper extends CustomClipper<Path> {
     path.close();
     return path;
   }
+
 
   @override
   bool shouldReclip(CustomClipper<Path> oldClipper) {
@@ -510,11 +577,13 @@ Widget memberOptionBar({
             );
           },
         ),
+        selectedEventID,
       ),
       memberOptionButton(
         context,
-        'Invite Member',
+        'Invite Collaborator',
         () {},
+        selectedEventID,
       ),
     ],
   );
@@ -524,23 +593,54 @@ Widget memberOptionButton(
   BuildContext context,
   String buttonTitle,
   Function onPressFunction,
+  String eventId,
 ) {
-  return InkWell(
-    child: Container(
-      height: 40,
-      width: 160,
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(25),
-          color: Color.fromRGBO(42, 61, 243, 1).withOpacity(0.9)),
-      child: Center(
-        child: Text(
-          buttonTitle,
-          style: kSubTextStyle.copyWith(
-            color: Colors.white,
+  return
+   eventId == null
+      ? Container()
+      : 
+      InkWell(
+          child: Container(
+            height: 40,
+            width: 160,
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(25),
+                color: eventId == 'no event' || eventId == ''
+                    ? Colors.grey
+                    : Color.fromRGBO(42, 61, 243, 1).withOpacity(0.9)),
+            child: Center(
+              child: Text(
+                buttonTitle,
+                style: kSubTextStyle.copyWith(
+                  color: Colors.white,
+                ),
+              ),
+            ),
           ),
+          onTap: eventId == 'no event' || eventId == '' ? () {} : onPressFunction,
+        );
+}
+
+Widget selectedEvent(BuildContext context, selectedEvent) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        "Selected Event",
+        style: kTitleTextstyle.copyWith(
+          color: Colors.black,
+          fontWeight: FontWeight.w500,
+          fontSize: 28,
         ),
       ),
-    ),
-    onTap: onPressFunction,
+      Text(
+        selectedEvent == '' ? 'No selected event' : selectedEvent,
+        style: kTitleTextstyle.copyWith(
+          fontSize: 18,
+          color: Colors.black,
+          fontWeight: FontWeight.w400,
+        ),
+      ),
+    ],
   );
 }

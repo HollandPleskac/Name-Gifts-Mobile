@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:random_string/random_string.dart';
+import 'package:intl/intl.dart';
 
 final Firestore _firestore = Firestore.instance;
 
@@ -13,7 +14,7 @@ class Fire {
     _firestore.collection('user data').document(userUid).setData(
       {
         'email': email,
-        'selected event':'no event',
+        'selected event': 'no selected event',
       },
     );
   }
@@ -38,7 +39,9 @@ class Fire {
       {
         'event name': eventName,
         'host': host,
-        'creation date': 'creation date',
+        'creation date': DateFormat.yMMMMd('en_US').format(
+          DateTime.now(),
+        )
       },
     );
 
@@ -46,7 +49,9 @@ class Fire {
       {
         'event name': eventName,
         'host': host,
-        'creation date': 'creation date',
+        'creation date': DateFormat.yMMMMd('en_US').format(
+          DateTime.now(),
+        )
       },
     );
 
@@ -142,9 +147,8 @@ class Fire {
     _firestore.runTransaction((Transaction tx) async {
       DocumentSnapshot postSnapshot = await tx.get(postRef);
       if (postSnapshot.exists) {
-        await tx.update(postRef, <String, dynamic>{
-          'total family members': postSnapshot.data['total family members'] + 1
-        });
+        await tx.update(postRef,
+            <String, dynamic>{'members': postSnapshot.data['members'] + 1});
       }
     });
   }
@@ -174,9 +178,8 @@ class Fire {
     _firestore.runTransaction((Transaction tx) async {
       DocumentSnapshot postSnapshot = await tx.get(postRef);
       if (postSnapshot.exists) {
-        await tx.update(postRef, <String, dynamic>{
-          'total family members': postSnapshot.data['total family members'] - 1
-        });
+        await tx.update(postRef,
+            <String, dynamic>{'members': postSnapshot.data['members'] - 1});
       }
     });
   }
@@ -266,14 +269,13 @@ class Fire {
         .delete();
   }
 
-///
-///
-///                                                 Delete Account clear firebase
-///
-///
- 
-void deleteAccountInDatabase(String uid) {
-  _firestore.collection('user data').document(uid).delete();
-}
+  ///
+  ///
+  ///                                                 Delete Account clear firebase
+  ///
+  ///
 
+  void deleteAccountInDatabase(String uid) {
+    _firestore.collection('user data').document(uid).delete();
+  }
 }

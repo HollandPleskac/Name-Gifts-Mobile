@@ -44,20 +44,20 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
   }
 
   Future getSelectedEventName() async {
-    try{
-    String selEventName = await _firestore
-        .collection('user data')
-        .document(uid)
-        .collection('my events')
-        .document(selectedEventID)
-        .get()
-        .then(
-          (docSnap) => docSnap.data['event name'],
-        );
+    try {
+      String selEventName = await _firestore
+          .collection('user data')
+          .document(uid)
+          .collection('my events')
+          .document(selectedEventID)
+          .get()
+          .then(
+            (docSnap) => docSnap.data['event name'],
+          );
 
-    selectedEventName = selEventName;
-    print(selectedEventName);
-    } catch(e) {
+      selectedEventName = selEventName;
+      print(selectedEventName);
+    } catch (e) {
       selectedEventName = 'No selected event';
     }
   }
@@ -115,9 +115,9 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
         child: Column(
           children: <Widget>[
             ClipPath(
-              clipper: SClipper(),
+              clipper: CClipper(),
               child: Container(
-                height: MediaQuery.of(context).size.height*0.4,
+                height: MediaQuery.of(context).size.height * 0.4,
                 width: double.infinity,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -179,21 +179,194 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
             SizedBox(
               height: 20,
             ),
-            topBar(
-              context,
-              _eventNameController,
-              _displayNameForEventController,
-              _inviteController,
-              selectedEventName,
-              uid,
+
+            ///
+            ///          TOP Bar
+            ///
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: <Widget>[
+                topBarButton(
+                  context,
+                  'Create Event',
+                  () {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10)),
+                          title: Text(
+                            'Create an Event',
+                            style: kHeadingTextStyle,
+                          ),
+                          content: Container(
+                            height: 150,
+                            child: Column(
+                              children: <Widget>[
+                                displayNameInput(
+                                  context: context,
+                                  controller: _eventNameController,
+                                  icon: Icon(
+                                    Icons.near_me,
+                                    color: kPrimaryColor,
+                                  ),
+                                  hintText: 'name of the event',
+                                ),
+                                displayNameInput(
+                                  context: context,
+                                  controller: _displayNameForEventController,
+                                  icon: Icon(
+                                    Icons.event_note,
+                                    color: kPrimaryColor,
+                                  ),
+                                  hintText: 'your name in the new event',
+                                ),
+                                Align(
+                                  alignment: Alignment.bottomRight,
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(right: 10),
+                                    child: RaisedButton(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(2),
+                                      ),
+                                      color: kPrimaryColor,
+                                      onPressed: () {
+                                        _fire.createEvent(
+                                          uid: uid,
+                                          eventName: _eventNameController.text,
+                                          familyNameForEvent:
+                                              _displayNameForEventController
+                                                  .text,
+                                          host: 'hollandpleskac@gmail.com',
+                                        );
+                                        Navigator.pop(context);
+
+                                        //updates the screen after popping
+
+                                        getSelectedEventID().then((_) {
+                                          print("got selected event id");
+                                          getSelectedEventName().then(
+                                            (_) {
+                                              print(
+                                                  'got the selected event name');
+                                              checkUsersEvents(uid).then(
+                                                (_) {
+                                                  print(
+                                                      'checked for user events');
+                                                  setState(() {});
+                                                },
+                                              );
+                                            },
+                                          );
+                                        });
+                                      },
+                                      child: Text(
+                                        'Create',
+                                        style: kSubTextStyle.copyWith(
+                                            color: Colors.white, fontSize: 17),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                  selectedEventID,
+                ),
+                topBarButton(
+                  context,
+                  'Invite to Event',
+                  () {
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10)),
+                          title: RichText(
+                            text: TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: "Invite to :\n",
+                                  style: kHeadingTextStyle.copyWith(
+                                    fontSize: 20,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: selectedEventName,
+                                  style: kHeadingTextStyle.copyWith(
+                                    color: Colors.black,
+                                    fontSize: 20,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          content: Container(
+                            height: 100,
+                            child: Column(
+                              children: <Widget>[
+                                displayNameInput(
+                                  context: context,
+                                  controller: _inviteController,
+                                  icon: Icon(
+                                    Icons.email,
+                                    color: kPrimaryColor,
+                                  ),
+                                  hintText: 'email of recipient',
+                                ),
+                                Align(
+                                  alignment: Alignment.bottomRight,
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(right: 10),
+                                    child: RaisedButton(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(2),
+                                      ),
+                                      color: kPrimaryColor,
+                                      onPressed: () {
+                                        //fire invite member
+                                        Navigator.pop(context);
+                                      },
+                                      child: Text(
+                                        'Invite',
+                                        style: kSubTextStyle.copyWith(
+                                            color: Colors.white, fontSize: 17),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                  selectedEventID,
+                ),
+              ],
             ),
+
+            ///
+            ///     END OF TOP BAR
+            ///
+
             SizedBox(
               height: 20,
             ),
 
             ///
+            /// List of events
             ///
-            ///
+
             Container(
               height: 230,
               child: isUserEvents == null
@@ -229,12 +402,29 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
                               child: ListView(
                                 children: snapshot.data.documents.map(
                                   (DocumentSnapshot document) {
-                                    return event(
-                                      context,
-                                      document['event name'],
-                                      document['creation date'],
-                                      uid,
-                                      selectedEventID,
+                                    return Event(
+                                      uid: uid,
+                                      eventName: document['event name'],
+                                      eventId: document.documentID,
+                                      creationDate: document['creation date'],
+                                      selectedEventId: selectedEventID,
+                                      function: () =>
+                                          getSelectedEventID().then((_) {
+                                        print("got selected event id");
+                                        getSelectedEventName().then(
+                                          (_) {
+                                            print(
+                                                'got the selected event name');
+                                            checkUsersEvents(uid).then(
+                                              (_) {
+                                                print(
+                                                    'checked for user events');
+                                                setState(() {});
+                                              },
+                                            );
+                                          },
+                                        );
+                                      }),
                                     );
                                   },
                                 ).toList(),
@@ -244,22 +434,6 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
                       },
                     ),
             ),
-
-            ///
-            ///
-            ///
-            // Container(
-            //   height: 350,
-            //   child: ListView(
-            //     physics: BouncingScrollPhysics(),
-            //     children: <Widget>[
-            //       event(context),
-            //       event(context),
-            //       event(context),
-            //       event(context),
-            //     ],
-            //   ),
-            // ),
           ],
         ),
       ),
@@ -267,29 +441,13 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
   }
 }
 
-class SClipper extends CustomClipper<Path> {
+class CClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
-    var path = new Path();
-    path.lineTo(0, size.height - 230);
-    var firstControlPoint = new Offset(size.width / 4, size.height - 230);
-    var firstEndPoint = new Offset(size.width / 2, size.height - 180);
-    var secondControlPoint =
-        new Offset(size.width - (size.width / 4), size.height - 120);
-    var secondEndPoint = new Offset(size.width, size.height - 120);
-
-    // var firstControlPoint = new Offset(size.width / 4, size.height - 120);
-    // var firstEndPoint = new Offset(size.width / 2, size.height - 180);
-    // var secondControlPoint =
-    //     new Offset(size.width - (size.width / 4), size.height - 235);
-    // var secondEndPoint = new Offset(size.width, size.height - 230);
-
-    path.quadraticBezierTo(firstControlPoint.dx, firstControlPoint.dy,
-        firstEndPoint.dx, firstEndPoint.dy);
-    path.quadraticBezierTo(secondControlPoint.dx, secondControlPoint.dy,
-        secondEndPoint.dx, secondEndPoint.dy);
-
-    path.lineTo(size.width, size.height / 3);
+    var path = Path();
+    path.lineTo(0, size.height - 80);
+    path.quadraticBezierTo(
+        size.width / 2, size.height / 1.9, size.width, size.height - 80);
     path.lineTo(size.width, 0);
     path.close();
     return path;
@@ -301,68 +459,200 @@ class SClipper extends CustomClipper<Path> {
   }
 }
 
-Widget event(
-  BuildContext context,
-  String eventName,
-  String creationDate,
-  String uid,
-  String selectedEventId,
-) {
-  return Padding(
-    padding: const EdgeInsets.only(bottom: 25),
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.start,
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: <Widget>[
-        Container(
-          height: 80,
-          width: MediaQuery.of(context).size.width * 0.92,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.only(
-              topRight: Radius.circular(50),
-              bottomRight: Radius.circular(50),
+class Event extends StatefulWidget {
+  final String eventName;
+  final String creationDate;
+  final String uid;
+  final String selectedEventId;
+  final String eventId;
+  final Function function;
+
+  const Event({
+    @required this.eventName,
+    @required this.creationDate,
+    @required this.uid,
+    @required this.selectedEventId,
+    @required this.eventId,
+    @required this.function,
+  });
+
+  @override
+  State<StatefulWidget> createState() => _EventState();
+}
+
+class _EventState extends State<Event> {
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 25),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Container(
+            height: 80,
+            width: MediaQuery.of(context).size.width * 0.92,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.only(
+                topRight: Radius.circular(50),
+                bottomRight: Radius.circular(50),
+              ),
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomRight,
+                colors: [
+                  kPrimaryColor,
+                  Color.fromRGBO(42, 61, 243, 1).withOpacity(0.9),
+                ],
+              ),
             ),
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomRight,
-              colors: [
-                kPrimaryColor,
-                Color.fromRGBO(42, 61, 243, 1).withOpacity(0.9),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.only(left: 30),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      eventTitleText(
+                        context,
+                        widget.eventName,
+                      ),
+                      SizedBox(
+                        height: 10,
+                      ),
+                      eventSubText(
+                        context,
+                        widget.creationDate.toString(),
+                      ),
+                    ],
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.only(right: 35),
+                  child: IconButton(
+                    onPressed: () async {
+                      _fire.deleteEvent(widget.uid, widget.eventId);
+                      widget.function();
+                      setState(() {});
+
+                      // after deleting the event, the screen is updated
+                      // getSelectedEventID().then((_) {
+                      //   print("got selected event id");
+                      //   getSelectedEventName().then(
+                      //     (_) {
+                      //       print('got the selected event name');
+                      //       checkUsersEvents(widget.uid).then(
+                      //         (_) {
+                      //           print('checked for user events');
+                      //           setState(() {});
+                      //         },
+                      //       );
+                      //     },
+                      //   );
+                      // });
+                    },
+                    icon: Icon(
+                      Icons.delete_forever,
+                      color: Colors.white,
+                      size: 28,
+                    ),
+                  ),
+                ),
               ],
             ),
           ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: <Widget>[
-              Padding(
-                padding: const EdgeInsets.only(left: 30),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: <Widget>[
-                    eventTitleText(context, eventName),
-                    SizedBox(
-                      height: 10,
-                    ),
-                    eventSubText(context, creationDate),
-                  ],
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(right: 35),
-                child: eventDelete(
-                  context,
-                  uid,
-                  selectedEventId,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    ),
-  );
+        ],
+      ),
+    );
+  }
 }
+
+// Cant use set state so this is commented for now
+
+// Widget event(
+//   BuildContext context,
+//   String eventName,
+//   String creationDate,
+//   String uid,
+//   String selectedEventId,
+//   String individualEventId,
+// ) {
+//   return Padding(
+//     padding: const EdgeInsets.only(bottom: 25),
+//     child: Row(
+//       mainAxisAlignment: MainAxisAlignment.start,
+//       crossAxisAlignment: CrossAxisAlignment.center,
+//       children: <Widget>[
+//         Container(
+//           height: 80,
+//           width: MediaQuery.of(context).size.width * 0.92,
+//           decoration: BoxDecoration(
+//             borderRadius: BorderRadius.only(
+//               topRight: Radius.circular(50),
+//               bottomRight: Radius.circular(50),
+//             ),
+//             gradient: LinearGradient(
+//               begin: Alignment.topCenter,
+//               end: Alignment.bottomRight,
+//               colors: [
+//                 kPrimaryColor,
+//                 Color.fromRGBO(42, 61, 243, 1).withOpacity(0.9),
+//               ],
+//             ),
+//           ),
+//           child: Row(
+//             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+//             children: <Widget>[
+//               Padding(
+//                 padding: const EdgeInsets.only(left: 30),
+//                 child: Column(
+//                   crossAxisAlignment: CrossAxisAlignment.start,
+//                   mainAxisAlignment: MainAxisAlignment.center,
+//                   children: <Widget>[
+//                     eventTitleText(context, eventName),
+//                     SizedBox(
+//                       height: 10,
+//                     ),
+//                     eventSubText(context, creationDate),
+//                   ],
+//                 ),
+//               ),
+//               Padding(
+//                 padding: const EdgeInsets.only(right: 35),
+//                 child: IconButton(
+//                   onPressed: () async {
+//                     _fire.deleteEvent(uid, individualEventId);
+//                     getSelectedEventID().then((_) {
+//                       print("got selected event id");
+//                       getSelectedEventName().then(
+//                         (_) {
+//                           print('got the selected event name');
+//                           checkUsersEvents(uid).then(
+//                             (_) {
+//                               print('checked for user events');
+//                               setState(() {});
+//                             },
+//                           );
+//                         },
+//                       );
+//                     });
+//                   },
+//                   icon: Icon(
+//                     Icons.delete_forever,
+//                     color: Colors.white,
+//                     size: 28,
+//                   ),
+//                 ),
+//               ),
+//             ],
+//           ),
+//         ),
+//       ],
+//     ),
+//   );
+// }
 
 Widget eventTitleText(BuildContext context, String eventName) {
   return Text(
@@ -377,19 +667,6 @@ Widget eventSubText(BuildContext context, String creationDate) {
     style: kSubTextStyle.copyWith(
       color: Colors.white,
       fontSize: 15,
-    ),
-  );
-}
-
-Widget eventDelete(BuildContext context, String uid, String eventId) {
-  return IconButton(
-    onPressed: () {
-      _fire.deleteEvent(uid, eventId);
-    },
-    icon: Icon(
-      Icons.delete_forever,
-      color: Colors.white,
-      size: 28,
     ),
   );
 }
@@ -422,184 +699,32 @@ Widget displayNameInput({
   );
 }
 
-Widget topBar(
-  BuildContext context,
-  TextEditingController _eventNameController,
-  TextEditingController _displayNameForEventController,
-  TextEditingController _inviteController,
-  String selectedEventName,
-  String uid,
-) {
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-    children: <Widget>[
-      topBarButton(
-        context,
-        'Create Event',
-        () {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
-                title: Text(
-                  'Create an Event',
-                  style: kHeadingTextStyle,
+Widget topBarButton(BuildContext context, String buttonTitle,
+    Function onPressFunction, selectedEventId) {
+  return selectedEventId == null
+      ? Container()
+      : InkWell(
+          child: Container(
+            height: 40,
+            width: 160,
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(30),
+                color: buttonTitle == 'Invite to Event' &&
+                        (selectedEventId == 'No selected event' ||
+                            selectedEventId == '')
+                    ? Colors.grey
+                    : Color.fromRGBO(42, 61, 243, 1).withOpacity(0.9)),
+            child: Center(
+              child: Text(
+                buttonTitle,
+                style: kSubTextStyle.copyWith(
+                  color: Colors.white,
                 ),
-                content: Container(
-                  height: 150,
-                  child: Column(
-                    children: <Widget>[
-                      displayNameInput(
-                        context: context,
-                        controller: _eventNameController,
-                        icon: Icon(
-                          Icons.near_me,
-                          color: kPrimaryColor,
-                        ),
-                        hintText: 'name of the event',
-                      ),
-                      displayNameInput(
-                        context: context,
-                        controller: _displayNameForEventController,
-                        icon: Icon(
-                          Icons.event_note,
-                          color: kPrimaryColor,
-                        ),
-                        hintText: 'your name in the new event',
-                      ),
-                      Align(
-                        alignment: Alignment.bottomRight,
-                        child: Padding(
-                          padding: const EdgeInsets.only(right: 10),
-                          child: RaisedButton(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(2),
-                            ),
-                            color: kPrimaryColor,
-                            onPressed: () {
-                              _fire.createEvent(
-                                uid: uid,
-                                eventName: _eventNameController.text,
-                                familyNameForEvent:
-                                    _displayNameForEventController.text,
-                                host: 'hollandpleskac@gmail.com',
-                              );
-                              Navigator.pop(context);
-                            },
-                            child: Text(
-                              'Create',
-                              style: kSubTextStyle.copyWith(
-                                  color: Colors.white, fontSize: 17),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
-        },
-      ),
-      topBarButton(
-        context,
-        'Invite to Event',
-        () {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)),
-                title: RichText(
-                  text: TextSpan(
-                    children: [
-                      TextSpan(
-                        text: "Invite to :\n",
-                        style: kHeadingTextStyle.copyWith(
-                          fontSize: 20,
-                          color: Colors.black,
-                        ),
-                      ),
-                      TextSpan(
-                        text: selectedEventName,
-                        style: kHeadingTextStyle.copyWith(
-                          color: Colors.black,
-                          fontSize: 20,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                content: Container(
-                  height: 100,
-                  child: Column(
-                    children: <Widget>[
-                      displayNameInput(
-                        context: context,
-                        controller: _inviteController,
-                        icon: Icon(
-                          Icons.email,
-                          color: kPrimaryColor,
-                        ),
-                        hintText: 'email of recipient',
-                      ),
-                      Align(
-                        alignment: Alignment.bottomRight,
-                        child: Padding(
-                          padding: const EdgeInsets.only(right: 10),
-                          child: RaisedButton(
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(2),
-                            ),
-                            color: kPrimaryColor,
-                            onPressed: () {
-                              //fire invite member
-                              Navigator.pop(context);
-                            },
-                            child: Text(
-                              'Invite',
-                              style: kSubTextStyle.copyWith(
-                                  color: Colors.white, fontSize: 17),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
-        },
-      ),
-    ],
-  );
-}
-
-Widget topBarButton(
-    BuildContext context, String buttonTitle, Function onPressFunction) {
-  return InkWell(
-    child: Container(
-      height: 40,
-      width: 160,
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(30),
-          color: Color.fromRGBO(42, 61, 243, 1).withOpacity(0.9)),
-      child: Center(
-        child: Text(
-          buttonTitle,
-          style: kSubTextStyle.copyWith(
-            color: Colors.white,
+              ),
+            ),
           ),
-        ),
-      ),
-    ),
-    onTap: onPressFunction,
-  );
+          onTap: onPressFunction,
+        );
 }
 
 Widget selectedEvent(BuildContext context, selectedEvent) {

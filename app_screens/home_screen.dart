@@ -173,19 +173,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   Expanded(
                     child: Stack(
                       children: <Widget>[
-                        // SvgPicture.asset(
-                        //   'assets/icons/Drcorona.svg',
-                        //   width: 210,
-                        //   fit: BoxFit.fitWidth,
-                        //   alignment: Alignment.topCenter,
-                        // ),
+                        
                         Positioned(
                           top: MediaQuery.of(context).size.height * 0.075,
                           left: MediaQuery.of(context).size.width * 0.15,
                           child: Wrap(
                             children: <Widget>[
                               Text(
-                                selectedEventDisplay,
+                                selectedEventDisplay == 'No events' ? 'View Selected Event' : selectedEventDisplay,
                                 style: kHeadingTextStyle.copyWith(
                                     color: Colors.white),
                               ),

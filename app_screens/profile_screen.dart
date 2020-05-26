@@ -46,7 +46,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       body: Column(
         children: <Widget>[
           ClipPath(
-            clipper: SClipper(),
+            clipper: CClipper(),
             child: Container(
               height: MediaQuery.of(context).size.height*0.4,
               width: double.infinity,
@@ -113,29 +113,47 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 }
 
-class SClipper extends CustomClipper<Path> {
+// class SClipper extends CustomClipper<Path> {
+//   @override
+//   Path getClip(Size size) {
+//     var path = new Path();
+//     path.lineTo(0, size.height - 160);
+//     var firstControlPoint = new Offset(size.width / 4, size.height - 103);
+//     var firstEndPoint = new Offset(size.width / 2, size.height - 170);
+//     var secondControlPoint =
+//         new Offset(size.width - (size.width / 4), size.height - 240);
+//     var secondEndPoint = new Offset(size.width, size.height - 220);
+
+//     // var firstControlPoint = new Offset(size.width / 4, size.height - 120);
+//     // var firstEndPoint = new Offset(size.width / 2, size.height - 180);
+//     // var secondControlPoint =
+//     //     new Offset(size.width - (size.width / 4), size.height - 235);
+//     // var secondEndPoint = new Offset(size.width, size.height - 230);
+
+//     path.quadraticBezierTo(firstControlPoint.dx, firstControlPoint.dy,
+//         firstEndPoint.dx, firstEndPoint.dy);
+//     path.quadraticBezierTo(secondControlPoint.dx, secondControlPoint.dy,
+//         secondEndPoint.dx, secondEndPoint.dy);
+
+//     path.lineTo(size.width, size.height / 3);
+//     path.lineTo(size.width, 0);
+//     path.close();
+//     return path;
+//   }
+
+//   @override
+//   bool shouldReclip(CustomClipper<Path> oldClipper) {
+//     return false;
+//   }
+// }
+
+class CClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
-    var path = new Path();
-    path.lineTo(0, size.height - 160);
-    var firstControlPoint = new Offset(size.width / 4, size.height - 103);
-    var firstEndPoint = new Offset(size.width / 2, size.height - 170);
-    var secondControlPoint =
-        new Offset(size.width - (size.width / 4), size.height - 240);
-    var secondEndPoint = new Offset(size.width, size.height - 220);
-
-    // var firstControlPoint = new Offset(size.width / 4, size.height - 120);
-    // var firstEndPoint = new Offset(size.width / 2, size.height - 180);
-    // var secondControlPoint =
-    //     new Offset(size.width - (size.width / 4), size.height - 235);
-    // var secondEndPoint = new Offset(size.width, size.height - 230);
-
-    path.quadraticBezierTo(firstControlPoint.dx, firstControlPoint.dy,
-        firstEndPoint.dx, firstEndPoint.dy);
-    path.quadraticBezierTo(secondControlPoint.dx, secondControlPoint.dy,
-        secondEndPoint.dx, secondEndPoint.dy);
-
-    path.lineTo(size.width, size.height / 3);
+    var path = Path();
+    path.lineTo(0, size.height - 90);
+    path.quadraticBezierTo(
+        size.width / 2, size.height, size.width, size.height - 90);
     path.lineTo(size.width, 0);
     path.close();
     return path;
