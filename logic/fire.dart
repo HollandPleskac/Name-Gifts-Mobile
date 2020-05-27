@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:name_gifts_v2/app_screens/invitation_screen.dart';
 import 'package:random_string/random_string.dart';
 import 'package:intl/intl.dart';
 
@@ -103,7 +104,32 @@ class Fire {
         .document(eventId)
         .delete();
 
-    _firestore.collection('events').document(eventId).delete();
+    //check remaining members
+    //this makes sure that if there are multiple members in an event and if one person deletes the event, the other members can stay
+    int membersRemaining = await _firestore
+        .collection('events')
+        .document(eventId)
+        .collection('event members')
+        .getDocuments()
+        .then(
+          (querySnap) => querySnap.documents.length,
+        );
+        print('is event empty? :::::: ::: ::: ' + membersRemaining.toString());
+    if (membersRemaining == 1) {
+      _firestore.collection('events')
+          .document(eventId)
+          .collection('event members')
+          .document(uid)
+          .delete();
+      _firestore.collection('events').document(eventId).delete();
+    } else {
+      _firestore
+          .collection('events')
+          .document(eventId)
+          .collection('event members')
+          .document(uid)
+          .delete();
+    }
 
     String _selectedEvent = await _firestore
         .collection('user data')
@@ -112,7 +138,7 @@ class Fire {
         .then((docSnapshot) => docSnapshot.data['selected event'].toString());
 
     if (_selectedEvent == eventId) {
-      // sets the selected event to nothing
+      // sets the selected event to nothing if selected event id equals the id of event just deleted
       setSelectedEvent(uid, '');
     }
   }
@@ -195,23 +221,20 @@ class Fire {
     String email,
     String eventName,
     String host,
+    String creationDate,
   }) async {
     String uidOfPersonRecievingInvite = await _firestore
         .collection('user data')
         .where('email', isEqualTo: email)
         .getDocuments()
         .then(
-          (value) => value.documents[0].documentID.toString(),
+          (querySnap) => querySnap.documents[0].documentID.toString(),
         );
-    // value is a query snapshot
-    // since there is one user per email there will only ever be one document in value
-    // we select the first value which is a document snapshot
-    // then we take the documentId from that which is the uidOfPersonRecievingInvite!
 
     _firestore
         .collection("user data")
         .document(uidOfPersonRecievingInvite)
-        .collection('invites')
+        .collection('my invites')
         .document(eventId)
         .setData(
       {
@@ -219,6 +242,7 @@ class Fire {
         'host': host,
         'invite type': 'event',
         'host uid': uid,
+        'creation date': creationDate,
       },
     );
   }
@@ -226,37 +250,40 @@ class Fire {
   void acceptInviteToEvent({
     String eventName,
     String uid,
-    String host,
-    String eventId,
+    String invitationEventId,
     String displayNameForEvent,
+    String creationDate,
+    String host,
   }) {
     // adds the user to the event
     _firestore
         .collection("user data")
         .document(uid)
         .collection('my events')
-        .document(eventId)
+        .document(invitationEventId)
         .setData(
       {
         'event name': eventName,
         'display name': displayNameForEvent,
         'event type': 'event',
+        'host': host,
+        'creation date': creationDate,
       },
     );
 
     //initializes members value and gifts value as well as display name
     _firestore
         .collection('events')
-        .document(eventId)
+        .document(invitationEventId)
         .collection('event members')
         .document(uid)
         .setData(
       {
         'family name': displayNameForEvent,
         'host': host,
-        'type': '',
         'members': 0,
         'gifts': 0,
+        'creationDate': creationDate,
       },
     );
 
@@ -264,9 +291,11 @@ class Fire {
     _firestore
         .collection("user data")
         .document(uid)
-        .collection('invites')
-        .document(eventId)
+        .collection('my invites')
+        .document(invitationEventId)
         .delete();
+
+    setSelectedEvent(uid, invitationEventId);
   }
 
   ///

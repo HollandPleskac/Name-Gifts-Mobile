@@ -37,6 +37,8 @@ dependencies:
   shared_preferences: ^0.5.7
   random_string: ^2.0.1
   flutter_svg: ^0.17.4
+  intl: ^0.16.1
+
 
 
 

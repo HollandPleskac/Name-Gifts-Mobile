@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:name_gifts_v2/constant.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../constant.dart';
+import '../logic/fire.dart';
+
+final _fire = Fire();
+final _firestore = Firestore.instance;
 
 class InvitationScreen extends StatefulWidget {
   @override
@@ -9,97 +15,163 @@ class InvitationScreen extends StatefulWidget {
 }
 
 class _InvitationScreenState extends State<InvitationScreen> {
+  TextEditingController _displayNameInEventController = TextEditingController();
+  String uid;
+  bool isData;
+
+  Future getUid() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+
+    String userUid = prefs.getString('uid');
+
+    uid = userUid;
+    print(uid);
+  }
+
+  @override
+  void initState() {
+    getUid().then((_) {
+      print("got uid");
+      setState(() {});
+    });
+
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: <Widget>[
-          ClipPath(
-            clipper: SClipper(),
-            child: Container(
-              height: MediaQuery.of(context).size.height*0.4,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.topRight,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    Color(0xFF3383CD),
-                    Color(0xFF11249F),
-                  ],
-                ),
-                image: DecorationImage(
-                  alignment: Alignment.topLeft,
-                  image: AssetImage(
-                    "assets/images/virus.png",
+      body: SingleChildScrollView(
+        child: Column(
+          children: <Widget>[
+            ClipPath(
+              clipper: SClipper(),
+              child: Container(
+                height: MediaQuery.of(context).size.height * 0.4,
+                width: double.infinity,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topRight,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFF3383CD),
+                      Color(0xFF11249F),
+                    ],
+                  ),
+                  image: DecorationImage(
+                    alignment: Alignment.topLeft,
+                    image: AssetImage(
+                      "assets/images/virus.png",
+                    ),
                   ),
                 ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  SizedBox(height: 20),
-                  Expanded(
-                    child: Stack(
-                      children: <Widget>[
-                        // SvgPicture.asset(
-                        //   'assets/icons/Drcorona.svg',
-                        //   width: 210,
-                        //   fit: BoxFit.fitWidth,
-                        //   alignment: Alignment.topCenter,
-                        // ),
-                        Positioned(
-                          top: 75,
-                          right: 60,
-                          child: Wrap(
-                            children: <Widget>[
-                              Text(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    SizedBox(height: 20),
+                    Expanded(
+                      child: Stack(
+                        children: <Widget>[
+                          // SvgPicture.asset(
+                          //   'assets/icons/Drcorona.svg',
+                          //   width: 210,
+                          //   fit: BoxFit.fitWidth,
+                          //   alignment: Alignment.topCenter,
+                          // ),
+                          Align(
+                            alignment: Alignment.topCenter,
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                top: MediaQuery.of(context).size.height * 0.11,
+                              ),
+                              child: Text(
                                 'My Invitations',
                                 style: kHeadingTextStyle.copyWith(
                                     color: Colors.white),
                               ),
-                            ],
+                            ),
                           ),
-                        ),
-                        Container(), // dont know why this works ??
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
-          ),
-          Container(
-            height: 300,
-            child: ListView(
-              physics: BouncingScrollPhysics(),
-              children: <Widget>[
-                invitation(context),
-                invitation(context),
-                invitation(context),
-                invitation(context),
-                invitation(context),
-                invitation(context),
-                invitation(context),
-                invitation(context),
-                invitation(context),
-                invitation(context),
-                invitation(context),
-                invitation(context),
-                invitation(context),
-                invitation(context),
-                invitation(context),
-                invitation(context),
-              ],
+            Container(
+              height: 350,
+              child: StreamBuilder(
+                stream: _firestore
+                    .collection("user data")
+                    .document(uid)
+                    .collection('my invites')
+                    .snapshots(),
+                builder: (BuildContext context,
+                    AsyncSnapshot<QuerySnapshot> snapshot) {
+                  if (snapshot.hasError) {
+                    return Text('Error: ${snapshot.error}');
+                  }
+
+                  switch (snapshot.connectionState) {
+                    case ConnectionState.waiting:
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    case ConnectionState.active:
+                      //if there is snapshot data and the list of doucments it returns is empty
+                      if (snapshot.data != null && snapshot.data.documents.isEmpty == false) {
+                        return Center(
+                          child: ListView(
+                            children: snapshot.data.documents.map(
+                              (DocumentSnapshot document) {
+                                return Invitation(
+                                  eventCreationDate: document['creation date'],
+                                  hostEmail: document['host'],
+                                  invitationType: document['invite type'],
+                                  eventName: document['event name'],
+                                  uid: uid,
+                                  invitationEventId: document.documentID,
+                                  displayNameInEventController:
+                                      _displayNameInEventController,
+                                );
+                              },
+                            ).toList(),
+                          ),
+                        );
+                      }
+                      // need in both places?? prevent error with no return statement
+                      return Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          children: [
+                            Container(),
+                            Container(),
+                            Text('You have no invitations'),
+                            Text('Your invitations will show up here'),
+                            Container(),
+                          ],
+                        ),
+                      );
+
+                    case ConnectionState.none:
+                      return Text('Connection state returned none');
+                      break;
+                    case ConnectionState.done:
+                      return Text('Connection state finished');
+                      break;
+                      default:
+                      return Text('nothing here');
+                    
+                  }
+                },
+              ),
             ),
-          )
-        ],
+          ],
+        ),
       ),
     );
   }
 }
-
-
 
 class SClipper extends CustomClipper<Path> {
   @override
@@ -135,36 +207,75 @@ class SClipper extends CustomClipper<Path> {
   }
 }
 
-Widget invitation(BuildContext context) {
-  return Container(
-    height: 200,
-    margin: EdgeInsets.only(
-      bottom: 30,
-      left: 15,
-      right: 15,
-    ),
-    width: MediaQuery.of(context).size.width * 0.9,
-    child: Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: <Widget>[
-        Expanded(
-          flex: 10,
-          child: invitationCard(context),
-        ),
-        Expanded(
-          flex: 1,
-          child: Container(),
-        ),
-        Expanded(
-          flex: 3,
-          child: invitationActions(context),
-        ),
-      ],
-    ),
-  );
+class Invitation extends StatelessWidget {
+  final String eventCreationDate;
+  final String hostEmail;
+  final String invitationType;
+  final String uid;
+  final String eventName;
+  final String invitationEventId;
+  final TextEditingController displayNameInEventController;
+
+  Invitation({
+    @required this.eventCreationDate,
+    @required this.hostEmail,
+    @required this.invitationType,
+    @required this.uid,
+    @required this.eventName,
+    @required this.invitationEventId,
+    @required this.displayNameInEventController,
+  });
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: 200,
+      margin: EdgeInsets.only(
+        bottom: 30,
+        left: 15,
+        right: 15,
+      ),
+      width: MediaQuery.of(context).size.width * 0.9,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: <Widget>[
+          Expanded(
+            flex: 10,
+            child: invitationCard(
+              context: context,
+              eventCreationDate: eventCreationDate,
+              hostEmail: hostEmail,
+              invitationType: invitationType,
+              eventName: eventName,
+            ),
+          ),
+          Expanded(
+            flex: 1,
+            child: Container(),
+          ),
+          Expanded(
+            flex: 3,
+            child: InvitationActions(
+              eventName: eventName,
+              invitationEventId: invitationEventId,
+              uid: uid,
+              displayNameInEventController: displayNameInEventController,
+              creationDate: eventCreationDate,
+              host: hostEmail,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
-Widget invitationCard(BuildContext context) {
+Widget invitationCard({
+  BuildContext context,
+  String eventCreationDate,
+  String invitationType,
+  String hostEmail,
+  String eventName,
+}) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -172,7 +283,7 @@ Widget invitationCard(BuildContext context) {
       Padding(
         padding: const EdgeInsets.only(left: 6),
         child: Text(
-          'Saturday, 22 Feb 2020',
+          eventCreationDate,
           style: kSubTextStyle.copyWith(fontSize: 18),
         ),
       ),
@@ -198,7 +309,7 @@ Widget invitationCard(BuildContext context) {
                     width: 10,
                   ),
                   Text(
-                    'event invitation',
+                    eventName.toString(),
                     style: kHeadingTextStyle.copyWith(
                       fontSize: 14,
                       color: Colors.grey[900],
@@ -219,7 +330,7 @@ Widget invitationCard(BuildContext context) {
                     width: 10,
                   ),
                   Text(
-                    'hollandpleskac@gmail.com',
+                    hostEmail,
                     style: kHeadingTextStyle.copyWith(
                       fontSize: 14,
                       color: Colors.grey[900],
@@ -238,40 +349,182 @@ Widget invitationCard(BuildContext context) {
   );
 }
 
-Widget invitationActions(BuildContext context) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.center,
-    mainAxisAlignment: MainAxisAlignment.end,
-    children: <Widget>[
-      Container(
-        height: 160,
-        width: double.infinity,
-        child: Card(
-          color: kPrimaryColor,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: <Widget>[
-              IconButton(
-                icon: Icon(
-                  Icons.check,
-                  color: Colors.white,
+class InvitationActions extends StatelessWidget {
+  final String eventName;
+  final String uid;
+  final String invitationEventId;
+  final TextEditingController displayNameInEventController;
+  final String creationDate;
+  final String host;
+
+  InvitationActions({
+    @required this.eventName,
+    @required this.uid,
+    @required this.invitationEventId,
+    @required this.displayNameInEventController,
+    @required this.creationDate,
+    @required this.host,
+  });
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: <Widget>[
+        Container(
+          height: 160,
+          width: double.infinity,
+          child: Card(
+            color: kPrimaryColor,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: <Widget>[
+                AcceptInviteToEvent(
+                  eventName: eventName,
+                  uid: uid,
+                  invitationEventId: invitationEventId,
+                  displayNameInEventController: displayNameInEventController,
+                  creationDate: creationDate,
+                  host: host,
                 ),
-                onPressed: () {},
-              ),
-              IconButton(
-                icon: Icon(
-                  Icons.delete_outline,
-                  color: Colors.white,
+                IconButton(
+                  icon: Icon(
+                    Icons.delete_outline,
+                    color: Colors.white,
+                  ),
+                  onPressed: () {},
                 ),
-                onPressed: () {},
-              ),
-            ],
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(25),
+              ],
+            ),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(25),
+            ),
           ),
         ),
+      ],
+    );
+  }
+}
+
+class AcceptInviteToEvent extends StatefulWidget {
+  final String eventName;
+  final String uid;
+  final String invitationEventId;
+  final String creationDate;
+  final TextEditingController displayNameInEventController;
+  final String host;
+  AcceptInviteToEvent({
+    @required this.eventName,
+    @required this.uid,
+    @required this.invitationEventId,
+    @required this.creationDate,
+    @required this.displayNameInEventController,
+    @required this.host,
+  });
+
+  @override
+  _AcceptInviteToEventState createState() => _AcceptInviteToEventState();
+}
+
+class _AcceptInviteToEventState extends State<AcceptInviteToEvent> {
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(
+        Icons.check,
+        color: Colors.white,
       ),
-    ],
+      onPressed: () {
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              title: Text(
+                'Join ' + widget.eventName.toString(),
+                style: kHeadingTextStyle,
+              ),
+              content: Container(
+                height: 110,
+                child: Column(
+                  children: <Widget>[
+                    displayNameInput(
+                      context: context,
+                      controller: widget.displayNameInEventController,
+                      icon: Icon(
+                        Icons.event_note,
+                        color: kPrimaryColor,
+                      ),
+                      hintText: 'your name in the event',
+                    ),
+                    Align(
+                      alignment: Alignment.bottomRight,
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 10),
+                        child: RaisedButton(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                          color: kPrimaryColor,
+                          onPressed: () {
+                            
+                            _fire.acceptInviteToEvent(
+                              displayNameForEvent:
+                                  widget.displayNameInEventController.text,
+                              eventName: widget.eventName,
+                              uid: widget.uid,
+                              invitationEventId: widget.invitationEventId,
+                              creationDate: widget.creationDate,
+                              host: widget.host,
+                            );
+                            Navigator.pop(context);
+
+                            setState(() {});
+                          },
+                          child: Text(
+                            'Join',
+                            style: kSubTextStyle.copyWith(
+                                color: Colors.white, fontSize: 17),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+Widget displayNameInput({
+  BuildContext context,
+  TextEditingController controller,
+  Icon icon,
+  String hintText,
+}) {
+  return Center(
+    child: Container(
+      width: MediaQuery.of(context).size.width * 0.8,
+      child: TextFormField(
+        controller: controller,
+        maxLines: 1,
+        style: kSubTextStyle,
+        autofocus: false,
+        decoration: InputDecoration(
+            border: InputBorder.none,
+            hintStyle: kSubTextStyle,
+            labelStyle: TextStyle(
+              color: Colors.white,
+            ),
+            hintText: hintText,
+            icon: icon),
+      ),
+    ),
   );
 }

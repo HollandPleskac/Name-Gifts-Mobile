@@ -79,20 +79,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         //   fit: BoxFit.fitWidth,
                         //   alignment: Alignment.topCenter,
                         // ),
-                        Positioned(
-                          top: 75,
-                          left: 130,
-                          child: Wrap(
-                            children: <Widget>[
-                              Text(
-                                'Profile',
-                                style: kHeadingTextStyle.copyWith(
-                                    color: Colors.white),
-                              ),
-                            ],
+                        Align(
+                          alignment: Alignment.topCenter,
+                          child: Padding(
+                            padding: EdgeInsets.only(
+                              top: MediaQuery.of(context).size.height * 0.12,
+                            ),
+                            child: Text(
+                              'Profile',
+                              style: kHeadingTextStyle.copyWith(
+                                  color: Colors.white),
+                            ),
                           ),
                         ),
-                        Container(), // dont know why this works ??
+                        
                       ],
                     ),
                   ),

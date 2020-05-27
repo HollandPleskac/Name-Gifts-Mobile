@@ -148,20 +148,19 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
                           //   fit: BoxFit.fitWidth,
                           //   alignment: Alignment.topCenter,
                           // ),
-                          Positioned(
-                            top: 75,
-                            right: 60,
-                            child: Wrap(
-                              children: <Widget>[
-                                Text(
-                                  'Manage Events',
-                                  style: kHeadingTextStyle.copyWith(
-                                      color: Colors.white),
-                                ),
-                              ],
+                          Align(
+                            alignment: Alignment.topCenter,
+                            child: Padding(
+                              padding: EdgeInsets.only(
+                                top: MediaQuery.of(context).size.height * 0.1,
+                              ),
+                              child: Text(
+                                'Manage Events',
+                                style: kHeadingTextStyle.copyWith(
+                                    color: Colors.white),
+                              ),
                             ),
                           ),
-                          Container(), // dont know why this works ??
                         ],
                       ),
                     ),
@@ -331,8 +330,35 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
                                         borderRadius: BorderRadius.circular(2),
                                       ),
                                       color: kPrimaryColor,
-                                      onPressed: () {
+                                      onPressed: () async {
                                         //fire invite member
+
+                                        String host = await _firestore
+                                            .collection('user data')
+                                            .document(uid)
+                                            .get()
+                                            .then(
+                                              (docSnap) =>
+                                                  docSnap.data['email'],
+                                            );
+
+                                        String creationDate = await _firestore
+                                            .collection('events')
+                                            .document(selectedEventID)
+                                            .get()
+                                            .then(
+                                              (docSnap) =>
+                                                  docSnap['creation date'],
+                                            );
+
+                                        _fire.sendInvite(
+                                          email: _inviteController.text,
+                                          eventId: selectedEventID,
+                                          eventName: selectedEventName,
+                                          uid: uid,
+                                          host: host,
+                                          creationDate: creationDate,
+                                        );
                                         Navigator.pop(context);
                                       },
                                       child: Text(
@@ -408,6 +434,7 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
                                       eventId: document.documentID,
                                       creationDate: document['creation date'],
                                       selectedEventId: selectedEventID,
+                                      host: document['host'],
                                       function: () =>
                                           getSelectedEventID().then((_) {
                                         print("got selected event id");
@@ -434,6 +461,10 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
                       },
                     ),
             ),
+
+            ///
+            ///   End of List of Events
+            ///
           ],
         ),
       ),
@@ -466,6 +497,7 @@ class Event extends StatefulWidget {
   final String selectedEventId;
   final String eventId;
   final Function function;
+  final String host;
 
   const Event({
     @required this.eventName,
@@ -474,6 +506,7 @@ class Event extends StatefulWidget {
     @required this.selectedEventId,
     @required this.eventId,
     @required this.function,
+    @required this.host,
   });
 
   @override
@@ -536,22 +569,6 @@ class _EventState extends State<Event> {
                       _fire.deleteEvent(widget.uid, widget.eventId);
                       widget.function();
                       setState(() {});
-
-                      // after deleting the event, the screen is updated
-                      // getSelectedEventID().then((_) {
-                      //   print("got selected event id");
-                      //   getSelectedEventName().then(
-                      //     (_) {
-                      //       print('got the selected event name');
-                      //       checkUsersEvents(widget.uid).then(
-                      //         (_) {
-                      //           print('checked for user events');
-                      //           setState(() {});
-                      //         },
-                      //       );
-                      //     },
-                      //   );
-                      // });
                     },
                     icon: Icon(
                       Icons.delete_forever,
@@ -568,91 +585,6 @@ class _EventState extends State<Event> {
     );
   }
 }
-
-// Cant use set state so this is commented for now
-
-// Widget event(
-//   BuildContext context,
-//   String eventName,
-//   String creationDate,
-//   String uid,
-//   String selectedEventId,
-//   String individualEventId,
-// ) {
-//   return Padding(
-//     padding: const EdgeInsets.only(bottom: 25),
-//     child: Row(
-//       mainAxisAlignment: MainAxisAlignment.start,
-//       crossAxisAlignment: CrossAxisAlignment.center,
-//       children: <Widget>[
-//         Container(
-//           height: 80,
-//           width: MediaQuery.of(context).size.width * 0.92,
-//           decoration: BoxDecoration(
-//             borderRadius: BorderRadius.only(
-//               topRight: Radius.circular(50),
-//               bottomRight: Radius.circular(50),
-//             ),
-//             gradient: LinearGradient(
-//               begin: Alignment.topCenter,
-//               end: Alignment.bottomRight,
-//               colors: [
-//                 kPrimaryColor,
-//                 Color.fromRGBO(42, 61, 243, 1).withOpacity(0.9),
-//               ],
-//             ),
-//           ),
-//           child: Row(
-//             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//             children: <Widget>[
-//               Padding(
-//                 padding: const EdgeInsets.only(left: 30),
-//                 child: Column(
-//                   crossAxisAlignment: CrossAxisAlignment.start,
-//                   mainAxisAlignment: MainAxisAlignment.center,
-//                   children: <Widget>[
-//                     eventTitleText(context, eventName),
-//                     SizedBox(
-//                       height: 10,
-//                     ),
-//                     eventSubText(context, creationDate),
-//                   ],
-//                 ),
-//               ),
-//               Padding(
-//                 padding: const EdgeInsets.only(right: 35),
-//                 child: IconButton(
-//                   onPressed: () async {
-//                     _fire.deleteEvent(uid, individualEventId);
-//                     getSelectedEventID().then((_) {
-//                       print("got selected event id");
-//                       getSelectedEventName().then(
-//                         (_) {
-//                           print('got the selected event name');
-//                           checkUsersEvents(uid).then(
-//                             (_) {
-//                               print('checked for user events');
-//                               setState(() {});
-//                             },
-//                           );
-//                         },
-//                       );
-//                     });
-//                   },
-//                   icon: Icon(
-//                     Icons.delete_forever,
-//                     color: Colors.white,
-//                     size: 28,
-//                   ),
-//                 ),
-//               ),
-//             ],
-//           ),
-//         ),
-//       ],
-//     ),
-//   );
-// }
 
 Widget eventTitleText(BuildContext context, String eventName) {
   return Text(
@@ -693,7 +625,6 @@ Widget displayNameInput({
             ),
             hintText: hintText,
             icon: icon),
-        // dont need a validator - solving the issue is done in the return from the sign in function
       ),
     ),
   );
@@ -710,7 +641,7 @@ Widget topBarButton(BuildContext context, String buttonTitle,
             decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(30),
                 color: buttonTitle == 'Invite to Event' &&
-                        (selectedEventId == 'No selected event' ||
+                        (selectedEventId == 'no selected event' ||
                             selectedEventId == '')
                     ? Colors.grey
                     : Color.fromRGBO(42, 61, 243, 1).withOpacity(0.9)),

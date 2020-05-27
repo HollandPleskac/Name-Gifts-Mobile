@@ -20,7 +20,7 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
 
   String uid;
   String selectedEventID;
-  String selectedEventName = '';
+  String selectedEventName = ' ';
   String isMembersData = 'loading';
   String familyName;
 
@@ -201,11 +201,32 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
             SizedBox(
               height: 20,
             ),
-            memberOptionBar(
-              context: context,
+            MemberOptionBar(
               uid: uid,
               memberNameController: _memberNameController,
               selectedEventID: selectedEventID,
+              updateScreenFunction: () => getUid().then((_) {
+                print("got uid");
+                getSelectedEventID().then((_) {
+                  print("got selected event id");
+                  getSelectedEventName().then(
+                    (_) {
+                      print('got the selected event name');
+                      checkMembersData(selectedEventID, uid).then(
+                        (_) {
+                          print('checked member data');
+                          getFamilyName(selectedEventID, uid).then(
+                            (_) {
+                              print('got family name');
+                              setState(() {});
+                            },
+                          );
+                        },
+                      );
+                    },
+                  );
+                });
+              }),
             ),
             SizedBox(
               height: 20,
@@ -269,12 +290,34 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
                                   child: ListView(
                                     children: snapshot.data.documents.map(
                                       (DocumentSnapshot document) {
-                                        return member(
-                                          context,
-                                          document.documentID,
-                                          document['member type'],
-                                          uid,
-                                          selectedEventID,
+                                        return Member(
+                                          memberName: document.documentID,
+                                          memberType: document['member type'],
+                                          uid: uid,
+                                          selectedEventID: selectedEventID,
+                                          updateScreenFunction: () =>
+                                              getUid().then((_) {
+                                            getSelectedEventID().then((_) {
+                                              getSelectedEventName().then(
+                                                (_) {
+                                                  checkMembersData(
+                                                          selectedEventID, uid)
+                                                      .then(
+                                                    (_) {
+                                                      getFamilyName(
+                                                              selectedEventID,
+                                                              uid)
+                                                          .then(
+                                                        (_) {
+                                                          setState(() {});
+                                                        },
+                                                      );
+                                                    },
+                                                  );
+                                                },
+                                              );
+                                            });
+                                          }),
                                         );
                                       },
                                     ).toList(),
@@ -284,54 +327,12 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
                           },
                         ),
             ),
-            
-
-            ///
-            ///
-            ///
-            // Container(
-            //   height: 320,
-            //   child: ListView(
-            //     physics: BouncingScrollPhysics(),
-            //     children: <Widget>[
-            //       member(context),
-            //       member(context),
-            //       member(context),
-            //       member(context),
-            //       member(context),
-            //       member(context),
-            //       member(context),
-            //     ],
-            //   ),
-            // ),
           ],
         ),
       ),
     );
   }
 }
-
-// class SClipper extends CustomClipper<Path> {
-//   @override
-//   Path getClip(Size size) {
-//     var path = new Path();
-//     path.lineTo(0, size.height - 80);
-//     var firstControlPoint = new Offset(size.width / 4, size.height - 120);
-//     var firstEndPoint = new Offset(size.width / 2, size.height - 180);
-//     var secondControlPoint =
-//         new Offset(size.width - (size.width / 4), size.height - 235);
-//     var secondEndPoint = new Offset(size.width, size.height - 230);
-
-//     path.quadraticBezierTo(firstControlPoint.dx, firstControlPoint.dy,
-//         firstEndPoint.dx, firstEndPoint.dy);
-//     path.quadraticBezierTo(secondControlPoint.dx, secondControlPoint.dy,
-//         secondEndPoint.dx, secondEndPoint.dy);
-
-//     path.lineTo(size.width, size.height / 3);
-//     path.lineTo(size.width, 0);
-//     path.close();
-//     return path;
-//   }
 
 class SClipper extends CustomClipper<Path> {
   @override
@@ -355,72 +356,92 @@ class SClipper extends CustomClipper<Path> {
     return path;
   }
 
-
   @override
   bool shouldReclip(CustomClipper<Path> oldClipper) {
     return false;
   }
 }
 
-Widget member(BuildContext context, String memberName, String memberType,
-    String uid, String selectedEventID) {
-  return Container(
-    margin: EdgeInsets.only(left: 20, right: 20, bottom: 20),
-    height: 80,
-    width: double.infinity,
-    decoration: BoxDecoration(
-      borderRadius: BorderRadius.circular(5),
-    ),
-    child: Card(
-      child: Row(
-        children: <Widget>[
-          Expanded(
-            flex: 1,
-            child: Container(
-              decoration: BoxDecoration(
-                color: kPrimaryColor,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(5),
-                  bottomLeft: Radius.circular(5),
+class Member extends StatelessWidget {
+  final String memberName;
+  final String memberType;
+  final String uid;
+  final String selectedEventID;
+  final Function updateScreenFunction;
+
+  Member({
+    this.memberName,
+    this.memberType,
+    this.uid,
+    this.selectedEventID,
+    @required this.updateScreenFunction,
+  });
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(left: 20, right: 20, bottom: 20),
+      height: 80,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(5),
+      ),
+      child: Card(
+        child: Row(
+          children: <Widget>[
+            Expanded(
+              flex: 1,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: kPrimaryColor,
+                  borderRadius: BorderRadius.only(
+                    topLeft: Radius.circular(5),
+                    bottomLeft: Radius.circular(5),
+                  ),
                 ),
               ),
             ),
-          ),
-          Expanded(
-            flex: 45,
-            child: Padding(
-              padding: const EdgeInsets.only(left: 20),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Row(
-                    children: <Widget>[
-                      hexagon(context),
-                      SizedBox(
-                        width: 15,
-                      ),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: <Widget>[
-                          Container(),
-                          memberNameText(context, memberName),
-                          memberTypeText(context, memberType),
-                          Container(),
-                          // containers are here to make memberNameText and memberTypeText go nearer to each other
-                        ],
-                      ),
-                    ],
-                  ),
-                  memberDelete(context, memberName, uid, selectedEventID),
-                ],
+            Expanded(
+              flex: 45,
+              child: Padding(
+                padding: const EdgeInsets.only(left: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: <Widget>[
+                    Row(
+                      children: <Widget>[
+                        hexagon(context),
+                        SizedBox(
+                          width: 15,
+                        ),
+                        Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            Container(),
+                            memberNameText(context, memberName),
+                            memberTypeText(context, memberType),
+                            Container(),
+                            // containers are here to make memberNameText and memberTypeText go nearer to each other
+                          ],
+                        ),
+                      ],
+                    ),
+                    memberDelete(
+                      context,
+                      memberName,
+                      uid,
+                      selectedEventID,
+                      () => updateScreenFunction(),
+                    ),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 }
 
 Widget hexagon(BuildContext context) {
@@ -465,8 +486,31 @@ Widget memberTypeText(BuildContext context, String memberType) {
   );
 }
 
-Widget memberDelete(BuildContext context, String memberName, String uid,
-    String selectedEventID) {
+class MemberDelete extends StatelessWidget {
+  final String memberName;
+  final String uid;
+  final String selectedEventID;
+  final Function updateScreenFunction;
+
+  MemberDelete({
+    @required this.memberName,
+    @required this.uid,
+    @required this.selectedEventID,
+    @required this.updateScreenFunction,
+  });
+  @override
+  Widget build(BuildContext context) {
+    return Container();
+  }
+}
+
+Widget memberDelete(
+  BuildContext context,
+  String memberName,
+  String uid,
+  String selectedEventID,
+  Function updateScreenFunction,
+) {
   return Padding(
     padding: const EdgeInsets.only(right: 20),
     child: IconButton(
@@ -478,6 +522,7 @@ Widget memberDelete(BuildContext context, String memberName, String uid,
       onPressed: () {
         _fire.deleteDependantMember(
             uid: uid, eventId: selectedEventID, memberName: memberName);
+        updateScreenFunction();
       },
     ),
   );
@@ -511,117 +556,140 @@ Widget memberNameInput({
   );
 }
 
-Widget memberOptionBar({
-  BuildContext context,
-  TextEditingController memberNameController,
-  String uid,
-  String selectedEventID,
-}) {
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.spaceAround,
-    children: [
-      memberOptionButton(
-        context,
-        'Add Member',
-        () => showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10)),
-              title: Text(
-                'Add a member',
-                style: kHeadingTextStyle,
-              ),
-              content: Container(
-                height: 100,
-                child: Column(
-                  children: <Widget>[
-                    memberNameInput(
-                      context: context,
-                      controller: memberNameController,
-                      icon: Icon(
-                        Icons.person_add,
-                        color: kPrimaryColor,
-                      ),
-                      hintText: 'member name',
-                    ),
-                    Align(
-                      alignment: Alignment.bottomRight,
-                      child: Padding(
-                        padding: const EdgeInsets.only(right: 10),
-                        child: RaisedButton(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(2),
-                          ),
+class MemberOptionBar extends StatefulWidget {
+  final TextEditingController memberNameController;
+  final String uid;
+  final String selectedEventID;
+  final updateScreenFunction;
+  MemberOptionBar({
+    this.memberNameController,
+    this.uid,
+    this.selectedEventID,
+    @required this.updateScreenFunction,
+  });
+
+  @override
+  _MemberOptionBarState createState() => _MemberOptionBarState();
+}
+
+class _MemberOptionBarState extends State<MemberOptionBar> {
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
+      children: [
+        MemberOptionButton(
+          buttonTitle: 'Add Member',
+          onPressFunction: () => showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10)),
+                title: Text(
+                  'Add a member',
+                  style: kHeadingTextStyle,
+                ),
+                content: Container(
+                  height: 100,
+                  child: Column(
+                    children: <Widget>[
+                      memberNameInput(
+                        context: context,
+                        controller: widget.memberNameController,
+                        icon: Icon(
+                          Icons.person_add,
                           color: kPrimaryColor,
-                          onPressed: () {
-                            _fire.addDependantMember(
-                              uid: uid,
-                              eventId: selectedEventID,
-                              memberName: memberNameController.text,
-                            );
-                            Navigator.pop(context);
-                          },
-                          child: Text(
-                            'Add',
-                            style: kSubTextStyle.copyWith(
-                                color: Colors.white, fontSize: 17),
+                        ),
+                        hintText: 'member name',
+                      ),
+                      Align(
+                        alignment: Alignment.bottomRight,
+                        child: Padding(
+                          padding: const EdgeInsets.only(right: 10),
+                          child: RaisedButton(
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                            color: kPrimaryColor,
+                            onPressed: () {
+                              _fire.addDependantMember(
+                                uid: widget.uid,
+                                eventId: widget.selectedEventID,
+                                memberName: widget.memberNameController.text,
+                              );
+
+                              Navigator.pop(context);
+
+                              //update screen after pop
+                              widget.updateScreenFunction();
+                            },
+                            child: Text(
+                              'Add',
+                              style: kSubTextStyle.copyWith(
+                                  color: Colors.white, fontSize: 17),
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
-              ),
-            );
-          },
+              );
+            },
+          ),
+          eventId: widget.selectedEventID,
         ),
-        selectedEventID,
-      ),
-      memberOptionButton(
-        context,
-        'Invite Collaborator',
-        () {},
-        selectedEventID,
-      ),
-    ],
-  );
+        MemberOptionButton(
+          buttonTitle: 'Invite Collaborator',
+          onPressFunction: () {},
+          eventId: widget.selectedEventID,
+        ),
+      ],
+    );
+  }
 }
 
-Widget memberOptionButton(
-  BuildContext context,
-  String buttonTitle,
-  Function onPressFunction,
-  String eventId,
-) {
-  return
-   eventId == null
-      ? Container()
-      : 
-      InkWell(
-          child: Container(
-            height: 40,
-            width: 160,
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(25),
-                color: eventId == 'no event' || eventId == ''
-                    ? Colors.grey
-                    : Color.fromRGBO(42, 61, 243, 1).withOpacity(0.9)),
-            child: Center(
-              child: Text(
-                buttonTitle,
-                style: kSubTextStyle.copyWith(
-                  color: Colors.white,
+class MemberOptionButton extends StatelessWidget {
+  final String buttonTitle;
+  final Function onPressFunction;
+  final String eventId;
+
+  MemberOptionButton({
+    this.buttonTitle,
+    this.onPressFunction,
+    this.eventId,
+  });
+  @override
+  Widget build(BuildContext context) {
+    return eventId == null
+        ? Container()
+        : InkWell(
+            child: Container(
+              height: 40,
+              width: 160,
+              decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(25),
+                  color: eventId == 'no selected event' || eventId == ''
+                      ? Colors.grey
+                      : Color.fromRGBO(42, 61, 243, 1).withOpacity(0.9)),
+              child: Center(
+                child: Text(
+                  buttonTitle,
+                  style: kSubTextStyle.copyWith(
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ),
-          ),
-          onTap: eventId == 'no event' || eventId == '' ? () {} : onPressFunction,
-        );
+            onTap: eventId == 'no selected event' || eventId == ''
+                ? () {}
+                : onPressFunction,
+          );
+  }
 }
 
-Widget selectedEvent(BuildContext context, selectedEvent) {
+Widget selectedEvent(BuildContext context, String selectedEventName) {
   return Column(
     crossAxisAlignment: CrossAxisAlignment.start,
     children: [
@@ -634,7 +702,9 @@ Widget selectedEvent(BuildContext context, selectedEvent) {
         ),
       ),
       Text(
-        selectedEvent == '' ? 'No selected event' : selectedEvent,
+        selectedEventName == ''
+            ? 'No selected event'
+            : selectedEventName,
         style: kTitleTextstyle.copyWith(
           fontSize: 18,
           color: Colors.black,

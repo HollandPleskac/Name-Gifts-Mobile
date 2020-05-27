@@ -173,21 +173,19 @@ class _HomeScreenState extends State<HomeScreen> {
                   Expanded(
                     child: Stack(
                       children: <Widget>[
-                        
-                        Positioned(
-                          top: MediaQuery.of(context).size.height * 0.075,
-                          left: MediaQuery.of(context).size.width * 0.15,
-                          child: Wrap(
-                            children: <Widget>[
-                              Text(
-                                selectedEventDisplay == 'No events' ? 'View Selected Event' : selectedEventDisplay,
-                                style: kHeadingTextStyle.copyWith(
-                                    color: Colors.white),
-                              ),
-                            ],
+                        Align(
+                          alignment: Alignment.topCenter,
+                          child: Padding(
+                            padding: EdgeInsets.only(
+                              top: MediaQuery.of(context).size.height * 0.073,
+                            ),
+                            child: Text(
+                              'View Selected Event',
+                              style: kHeadingTextStyle.copyWith(
+                                  color: Colors.white),
+                            ),
                           ),
                         ),
-                        Container(), // dont know why this works ??
                       ],
                     ),
                   ),
