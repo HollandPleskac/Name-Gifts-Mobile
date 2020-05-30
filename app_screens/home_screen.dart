@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../logic/fire.dart';
 import '../constant.dart';
+import '../sub_screens/view_members_screen.dart';
 
 final Firestore _firestore = Firestore.instance;
 final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
@@ -261,17 +262,6 @@ class _HomeScreenState extends State<HomeScreen> {
                             value: selectedEvent,
                             items: dropdownEvents,
                             onChanged: (newEventSelected) async {
-                              // setState(() {
-                              //   //newEventSelected is the name of the new event picked
-
-                              //   this.selectedEvent = newEventSelected;
-
-                              //   this.selectedEventDisplay = newEventSelected;
-                              // });
-
-                              //set id does not work and setSelctedEvent from fire also does not work
-
-                              // pass the event name into this function
                               await setSelectedEventIdInFirestore(
                                 newEventSelected,
                               );
@@ -289,53 +279,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   }
                 }),
           ),
-
-          //                                 Example of a dropdown with a list instead of firebase
-          // Container(
-          //   margin: EdgeInsets.symmetric(horizontal: 20),
-          //   padding: EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-          //   height: 60,
-          //   width: double.infinity,
-          //   decoration: BoxDecoration(
-          //     color: Colors.white,
-          //     borderRadius: BorderRadius.circular(25),
-          //     border: Border.all(
-          //       color: Color(0xFFE5E5E5),
-          //     ),
-          //   ),
-          //   child: Row(
-          //     children: <Widget>[
-          //       Icon(Icons.perm_camera_mic),
-          //       SizedBox(
-          //         width: 20,
-          //       ),
-          //       Expanded(
-          //         child: DropdownButton<String>(
-          //           isExpanded: true,
-          //           underline: SizedBox(),
-          //           icon: Container(
-          //             width: 10,
-          //             height: 10,
-          //             child: Icon(Icons.arrow_drop_down),
-          //           ),
-          //           value: selectedEventDisplay,
-          //           items: eventsList
-          //               .map<DropdownMenuItem<String>>((String dropDownItem) {
-          //             return DropdownMenuItem<String>(
-          //               value: dropDownItem,
-          //               child: Text(dropDownItem),
-          //             );
-          //           }).toList(),
-          //           onChanged: (String newValueSelected) {
-          //             setState(() {
-          //               this.selectedEvent = newValueSelected;
-          //             });
-          //           },
-          //         ),
-          //       ),
-          //     ],
-          //   ),
-          // ),
           SizedBox(height: MediaQuery.of(context).size.height * 0.028),
           Padding(
             padding: EdgeInsets.symmetric(
@@ -417,6 +360,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                     members: document['members'],
                                     uid: uid,
                                     selectedEvent: selectedEvent,
+                                    selectedEventId: selectedEventID,
+                                    familyUid: document.documentID,
                                   );
                                 },
                               ).toList(),
@@ -468,6 +413,8 @@ Widget family({
   int members,
   String uid,
   String selectedEvent,
+  String selectedEventId,
+  String familyUid,
 }) {
   return Padding(
     padding: EdgeInsets.symmetric(
@@ -518,64 +465,17 @@ Widget family({
             Positioned(
               bottom: MediaQuery.of(context).size.width * 0.035,
               right: MediaQuery.of(context).size.width * 0.04,
-              child: viewButton(context, uid, selectedEvent),
+              child: ViewButton(
+                uid: uid,
+                eventName: selectedEvent,
+                familyName: familyName,
+                selectedEventId: selectedEventId,
+                familyUid: familyUid,
+              ),
             ),
           ],
         ),
       ),
-      // child: Card(
-      //   shape: RoundedRectangleBorder(
-      //     borderRadius: BorderRadius.only(
-      //       bottomLeft: Radius.circular(20),
-      //       topLeft: Radius.circular(20),
-      //     ),
-      //   ),
-      //   // child: Column(
-      //   //   crossAxisAlignment: CrossAxisAlignment.start,
-      //   //   children: <Widget>[
-      //   //     Row(
-      //   //       crossAxisAlignment: CrossAxisAlignment.start,
-      //   //       children: <Widget>[
-      //   //         profilePic(context),
-      //   //         Padding(
-      //   //           padding: EdgeInsets.only(
-      //   //               top: MediaQuery.of(context).size.height * 0.04,
-      //   //               left: MediaQuery.of(context).size.width * 0.05),
-      //   //           child: text(context, familyName),
-      //   //         ),
-      //   //       ],
-      //   //     ),
-
-      //   //     // SizedBox(height: 15,),
-      //   //     // Container(
-      //   //     //   child: Row(
-      //   //     //     mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      //   //     //     children: <Widget>[
-      //   //     //       Padding(
-      //   //     //         padding: EdgeInsets.only(
-      //   //     //           top: MediaQuery.of(context).size.height * 0.05,
-      //   //     //           left: MediaQuery.of(context).size.width * 0.09,
-      //   //     //         ),
-      //   //     //         child: information(context, members, gifts),
-      //   //     //       ),
-      //   //     //       Padding(
-      //   //     //         padding: EdgeInsets.only(
-      //   //     //           top: 35,
-      //   //     //           right: 20,
-
-      //   //     //         ),
-      //   //     //         child: viewButton(
-      //   //     //           context,
-      //   //     //           uid,
-      //   //     //           selectedEvent,
-      //   //     //         ),
-      //   //     //       ),
-      //   //     //     ],
-      //   //     //   ),
-      //   //     // )
-      //   //   ],
-      //   // ),
-      // ),
     ),
   );
 }
@@ -652,19 +552,46 @@ Widget information(BuildContext context, int members, int gifts) {
   );
 }
 
-Widget viewButton(BuildContext context, String uid, String eventName) {
-  return Container(
-    height: MediaQuery.of(context).size.height * 0.05,
-    width: MediaQuery.of(context).size.width * 0.2,
-    child: FlatButton(
-      onPressed: () async {},
-      color: Colors.blueAccent,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(
-          8,
+class ViewButton extends StatelessWidget {
+  final String eventName;
+  final String uid;
+  final String familyName;
+  final String selectedEventId;
+  final String familyUid;
+
+  ViewButton({
+    this.eventName,
+    this.uid,
+    this.familyName,
+    this.selectedEventId,
+    @required this.familyUid,
+  });
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      height: MediaQuery.of(context).size.height * 0.05,
+      width: MediaQuery.of(context).size.width * 0.2,
+      child: FlatButton(
+        onPressed: () async {
+          print('push');
+          Navigator.pushNamed(
+            context,
+            ViewMembersScreen.routeName,
+            arguments: {
+              'family name': familyName,
+              'family uid': familyUid,
+              'selected event id': selectedEventId,
+            },
+          );
+        },
+        color: Colors.blueAccent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(
+            8,
+          ),
         ),
+        child: Text('View', style: kSubTextStyle.copyWith(color: Colors.white)),
       ),
-      child: Text('View', style: kSubTextStyle.copyWith(color: Colors.white)),
-    ),
-  );
+    );
+  }
 }

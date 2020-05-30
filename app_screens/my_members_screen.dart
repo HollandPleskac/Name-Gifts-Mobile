@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../logic/fire.dart';
+import '../sub_screens/my_gifts_screen.dart';
 
 final _fire = Fire();
 
@@ -385,59 +386,68 @@ class Member extends StatelessWidget {
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(5),
       ),
-      child: Card(
-        child: Row(
-          children: <Widget>[
-            Expanded(
-              flex: 1,
-              child: Container(
-                decoration: BoxDecoration(
-                  color: kPrimaryColor,
-                  borderRadius: BorderRadius.only(
-                    topLeft: Radius.circular(5),
-                    bottomLeft: Radius.circular(5),
+      child: InkWell(
+        onTap: () {
+          Navigator.pushNamed(context, MyGiftsScreen.routeName,arguments: {
+            'uid':uid,
+            'selected event id':selectedEventID,
+            'member name':memberName,
+          });
+        },
+        child: Card(
+          child: Row(
+            children: <Widget>[
+              Expanded(
+                flex: 1,
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: kPrimaryColor,
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(5),
+                      bottomLeft: Radius.circular(5),
+                    ),
                   ),
                 ),
               ),
-            ),
-            Expanded(
-              flex: 45,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    Row(
-                      children: <Widget>[
-                        hexagon(context),
-                        SizedBox(
-                          width: 15,
-                        ),
-                        Column(
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Container(),
-                            memberNameText(context, memberName),
-                            memberTypeText(context, memberType),
-                            Container(),
-                            // containers are here to make memberNameText and memberTypeText go nearer to each other
-                          ],
-                        ),
-                      ],
-                    ),
-                    memberDelete(
-                      context,
-                      memberName,
-                      uid,
-                      selectedEventID,
-                      () => updateScreenFunction(),
-                    ),
-                  ],
+              Expanded(
+                flex: 45,
+                child: Padding(
+                  padding: const EdgeInsets.only(left: 20),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      Row(
+                        children: <Widget>[
+                          hexagon(context),
+                          SizedBox(
+                            width: 15,
+                          ),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Container(),
+                              memberNameText(context, memberName),
+                              memberTypeText(context, memberType),
+                              Container(),
+                              // containers are here to make memberNameText and memberTypeText go nearer to each other
+                            ],
+                          ),
+                        ],
+                      ),
+                      memberDelete(
+                        context,
+                        memberName,
+                        uid,
+                        selectedEventID,
+                        () => updateScreenFunction(),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
@@ -702,9 +712,7 @@ Widget selectedEvent(BuildContext context, String selectedEventName) {
         ),
       ),
       Text(
-        selectedEventName == ''
-            ? 'No selected event'
-            : selectedEventName,
+        selectedEventName == '' ? 'No selected event' : selectedEventName,
         style: kTitleTextstyle.copyWith(
           fontSize: 18,
           color: Colors.black,

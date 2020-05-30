@@ -114,9 +114,10 @@ class Fire {
         .then(
           (querySnap) => querySnap.documents.length,
         );
-        print('is event empty? :::::: ::: ::: ' + membersRemaining.toString());
+    print('is event empty? :::::: ::: ::: ' + membersRemaining.toString());
     if (membersRemaining == 1) {
-      _firestore.collection('events')
+      _firestore
+          .collection('events')
           .document(eventId)
           .collection('event members')
           .document(uid)
@@ -160,6 +161,7 @@ class Fire {
       {
         'linked': '',
         'member type': 'dependant member',
+        'gifts': 0,
       },
     );
 
@@ -306,5 +308,135 @@ class Fire {
 
   void deleteAccountInDatabase(String uid) {
     _firestore.collection('user data').document(uid).delete();
+  }
+
+  ///
+  ///
+  ///                                                 Add/Remove Gifts
+  ///
+  ///
+
+  Future<String> addGift(
+      String memberName,
+      String giftName,
+      String uid,
+      String eventId,
+      double giftPrice,
+      String giftLink,
+      String giftDescription) async {
+    List potentialGiftsWithSameGiftName = await _firestore
+        .collection('events')
+        .document(eventId)
+        .collection('event members')
+        .document(uid)
+        .collection('family members')
+        .document(memberName)
+        .collection('gifts')
+        .where('name', isEqualTo: giftName)
+        .getDocuments()
+        .then(
+          (value) => value.documents,
+        );
+    if (potentialGiftsWithSameGiftName.isEmpty) {
+      _firestore
+          .collection('events')
+          .document(eventId)
+          .collection('event members')
+          .document(uid)
+          .collection('family members')
+          .document(memberName)
+          .collection('gifts')
+          .document(giftName)
+          .setData(
+        {
+          'price': giftPrice,
+          'name': giftName,
+          'link': giftLink,
+          'description': giftDescription,
+        },
+      );
+
+      final DocumentReference postRef = Firestore.instance
+          .collection('events')
+          .document(eventId)
+          .collection('event members')
+          .document(uid);
+      _firestore.runTransaction(
+        (Transaction tx) async {
+          DocumentSnapshot postSnapshot = await tx.get(postRef);
+          if (postSnapshot.exists) {
+            await tx.update(postRef,
+                <String, dynamic>{'gifts': postSnapshot.data['gifts'] + 1});
+          }
+        },
+      );
+      return 'success';
+    } else {
+      return 'name already taken';
+    }
+  }
+
+  void removeGift(
+      String memberName, String giftName, String uid, String eventId) {
+    _firestore
+        .collection('events')
+        .document(eventId)
+        .collection('event members')
+        .document(uid)
+        .collection('family members')
+        .document(memberName)
+        .collection('gifts')
+        .document(giftName)
+        .delete();
+
+    final DocumentReference postRef = Firestore.instance
+        .collection('events')
+        .document(eventId)
+        .collection('event members')
+        .document(uid);
+    _firestore.runTransaction((Transaction tx) async {
+      DocumentSnapshot postSnapshot = await tx.get(postRef);
+      if (postSnapshot.exists) {
+        await tx.update(postRef,
+            <String, dynamic>{'gifts': postSnapshot.data['gifts'] - 1});
+      }
+    });
+  }
+
+  void updateGift({
+    String eventId,
+    String uid,
+    String memberName,
+    String giftName,
+    String newGiftDescription,
+    String newGiftLink,
+    String newGiftName,
+    double newGiftPrice,
+  }) {
+    _firestore
+        .collection('events')
+        .document(eventId)
+        .collection('event members')
+        .document(uid)
+        .collection('family members')
+        .document(memberName)
+        .collection('gifts')
+        .document(giftName)
+        .delete();
+    _firestore
+        .collection('events')
+        .document(eventId)
+        .collection('event members')
+        .document(uid)
+        .collection('family members')
+        .document(memberName)
+        .collection('gifts')
+        .document(newGiftName)
+        .setData({
+      'name': newGiftName,
+      'link': newGiftLink,
+      'price': newGiftPrice,
+      'description': newGiftDescription,
+    });
   }
 }
