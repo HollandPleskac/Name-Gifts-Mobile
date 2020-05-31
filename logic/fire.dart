@@ -6,6 +6,36 @@ import 'package:intl/intl.dart';
 final Firestore _firestore = Firestore.instance;
 
 class Fire {
+
+  //checks if the selected event is a family invite - if so returns uid of the family invite
+  Future<String> determineSelectedEventType(String userUid) async {
+    String selectedEvent = await _firestore
+        .collection('user data')
+        .document(userUid)
+        .get()
+        .then((docSnap) => docSnap.data['selected event']);
+
+    String eventType = await _firestore
+        .collection('user data')
+        .document(userUid)
+        .collection('my events')
+        .document(selectedEvent)
+        .get()
+        .then((docSnap) => docSnap.data['event type']);
+
+    if (eventType == 'family') {
+      String hostUid = await _firestore
+          .collection('user data')
+          .document(userUid)
+          .collection('my events')
+          .document(selectedEvent)
+          .get()
+          .then((docSnap) => docSnap.data['host uid']);
+          return hostUid;
+    }
+    return userUid;
+  }
+
   ///
   ///
   ///                              Create an Account
@@ -42,7 +72,8 @@ class Fire {
         'host': host,
         'creation date': DateFormat.yMMMMd('en_US').format(
           DateTime.now(),
-        )
+        ),
+        'event type': 'event',
       },
     );
 
@@ -224,6 +255,8 @@ class Fire {
     String eventName,
     String host,
     String creationDate,
+    String inviteType,
+    String familyName,
   }) async {
     String uidOfPersonRecievingInvite = await _firestore
         .collection('user data')
@@ -242,20 +275,23 @@ class Fire {
       {
         'event name': eventName,
         'host': host,
-        'invite type': 'event',
+        'invite type': inviteType,
         'host uid': uid,
         'creation date': creationDate,
+        'family name': familyName,
+        //fam name is only really used for invite to family - it is null if inviting to event
       },
     );
   }
 
-  void acceptInviteToEvent({
+  void acceptInvite({
     String eventName,
     String uid,
     String invitationEventId,
     String displayNameForEvent,
     String creationDate,
     String host,
+    String inviteType,
   }) {
     // adds the user to the event
     _firestore
@@ -267,7 +303,7 @@ class Fire {
       {
         'event name': eventName,
         'display name': displayNameForEvent,
-        'event type': 'event',
+        'event type': inviteType,
         'host': host,
         'creation date': creationDate,
       },
@@ -286,6 +322,60 @@ class Fire {
         'members': 0,
         'gifts': 0,
         'creationDate': creationDate,
+      },
+    );
+
+    // deletes the events out of invites list
+    _firestore
+        .collection("user data")
+        .document(uid)
+        .collection('my invites')
+        .document(invitationEventId)
+        .delete();
+
+    setSelectedEvent(uid, invitationEventId);
+  }
+
+  void acceptInviteToFamily({
+    String eventName,
+    String uid,
+    String invitationEventId,
+    String displayNameForFamily,
+    String creationDate,
+    String host,
+    String inviteType,
+    String hostUid,
+  }) {
+    // adds the user to the event
+    _firestore
+        .collection("user data")
+        .document(uid)
+        .collection('my events')
+        .document(invitationEventId)
+        .setData(
+      {
+        'event name': eventName,
+        'display name': displayNameForFamily,
+        'event type': inviteType,
+        'host': host,
+        'creation date': creationDate,
+      },
+    );
+
+    //initializes and gifts value as well as display name
+    //TODO : add plus one to total members count
+    _firestore
+        .collection('events')
+        .document(invitationEventId)
+        .collection('event members')
+        .document(uid)
+        .collection('family members')
+        .document(displayNameForFamily)
+        .setData(
+      {
+        'gifts': 0,
+        'member type': 'independent member',
+        'linked': uid,
       },
     );
 
@@ -360,7 +450,9 @@ class Fire {
           .collection('events')
           .document(eventId)
           .collection('event members')
-          .document(uid);
+          .document(uid)
+          .collection('family members')
+          .document(memberName);
       _firestore.runTransaction(
         (Transaction tx) async {
           DocumentSnapshot postSnapshot = await tx.get(postRef);
@@ -393,7 +485,9 @@ class Fire {
         .collection('events')
         .document(eventId)
         .collection('event members')
-        .document(uid);
+        .document(uid)
+        .collection('family members')
+        .document(memberName);
     _firestore.runTransaction((Transaction tx) async {
       DocumentSnapshot postSnapshot = await tx.get(postRef);
       if (postSnapshot.exists) {

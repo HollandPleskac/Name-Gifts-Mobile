@@ -30,13 +30,16 @@ class _HomeScreenState extends State<HomeScreen> {
   String selectedEventID;
   String uid;
   String isEventData = 'loading';
+  String altUid;
 
   Future getUid() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     String userUid = prefs.getString('uid');
+  String alternateUid = prefs.getString('alt uid');
 
     uid = userUid;
+    altUid = alternateUid;
     print(uid);
   }
 
@@ -304,11 +307,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     Spacer(),
-                    //it can be annoying to scroll through 7 people so just search
 
                     InkWell(
                       child: Text(
-                        "Search",
+                        "View Event",
                         style: TextStyle(
                           color: kPrimaryColor,
                           fontWeight: FontWeight.w600,

@@ -27,16 +27,16 @@ class _SignInScreenState extends State<SignInScreen> {
   void login() async {
     ///
     ///
-    void setUid(String uidValue) async {
+    void setUid(String uidValue, String altUidValue) async {
       SharedPreferences prefs = await SharedPreferences.getInstance();
 
       await prefs.setString(
         'uid',
         uidValue,
       );
+
+      await prefs.setString('alt uid', altUidValue);
     }
-
-
 
     //
     //
@@ -48,12 +48,14 @@ class _SignInScreenState extends State<SignInScreen> {
 
     //authPackage[0] is either success or contains the error message
     //authPackage[1] is either the user uid or null
+    //authPackage[2] is the user uid or the alt user uid (used if the selected event is an invite to a family)
 
     if (authPackage[0] == 'success') {
-
       // sets the uid - authPackage[1] is the uid
-      setUid(authPackage[1]);
-
+      setUid(
+        authPackage[1],
+        authPackage[2],
+      );
 
       Navigator.push(
         context,
@@ -81,21 +83,21 @@ class _SignInScreenState extends State<SignInScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               SizedBox(
-                height: MediaQuery.of(context).size.height*0.08,
+                height: MediaQuery.of(context).size.height * 0.08,
               ),
               signInText(context),
               SizedBox(
-                height: MediaQuery.of(context).size.height*0.04,
+                height: MediaQuery.of(context).size.height * 0.04,
               ),
               Hero(
                 tag: 'dash',
                 child: Container(
-                  width: MediaQuery.of(context).size.width*0.45,
+                  width: MediaQuery.of(context).size.width * 0.45,
                   child: Image.asset('assets/images/gift.png'),
                 ),
               ),
               SizedBox(
-                height: MediaQuery.of(context).size.height*0.07,
+                height: MediaQuery.of(context).size.height * 0.07,
               ),
               signInInput(
                 context: context,
@@ -109,7 +111,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 obscureText: false,
               ),
               SizedBox(
-                height: MediaQuery.of(context).size.height*0.03,
+                height: MediaQuery.of(context).size.height * 0.03,
               ),
               signInInput(
                 context: context,
@@ -123,18 +125,18 @@ class _SignInScreenState extends State<SignInScreen> {
                 obscureText: true,
               ),
               SizedBox(
-                height: MediaQuery.of(context).size.height*0.009,
+                height: MediaQuery.of(context).size.height * 0.009,
               ),
               signInErrorText(context, errorMessage),
               SizedBox(
-                height: MediaQuery.of(context).size.height*0.009,
+                height: MediaQuery.of(context).size.height * 0.009,
               ),
               signInButton(
                 context,
                 () => login(),
               ),
               SizedBox(
-                height: MediaQuery.of(context).size.height*0.028,
+                height: MediaQuery.of(context).size.height * 0.028,
               ),
               signInAlreadyHaveAccount(context),
             ],
@@ -176,7 +178,8 @@ Widget signInInput({
         color: Colors.white,
       ),
       child: Padding(
-        padding: EdgeInsets.only(left: MediaQuery.of(context).size.width*0.045),
+        padding:
+            EdgeInsets.only(left: MediaQuery.of(context).size.width * 0.045),
         child: TextFormField(
           controller: controller,
           maxLines: 1,
@@ -192,7 +195,6 @@ Widget signInInput({
             ),
             hintText: hintText,
             icon: icon,
-            
           ),
           // dont need a validator - solving the issue is done in the return from the sign in function
         ),
@@ -206,7 +208,7 @@ Widget signInButton(
   Function loginFunction,
 ) {
   return Container(
-    height: MediaQuery.of(context).size.height*0.061,
+    height: MediaQuery.of(context).size.height * 0.061,
     width: MediaQuery.of(context).size.width * 0.6,
     child: FlatButton(
       shape: RoundedRectangleBorder(

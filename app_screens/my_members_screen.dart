@@ -18,19 +18,24 @@ class MyMembersScreen extends StatefulWidget {
 
 class _MyMembersScreenState extends State<MyMembersScreen> {
   TextEditingController _memberNameController = TextEditingController();
+  TextEditingController _inviteController = TextEditingController();
 
   String uid;
+  String altUid;
   String selectedEventID;
   String selectedEventName = ' ';
   String isMembersData = 'loading';
   String familyName;
+  bool isFamilyEvent;
 
   Future getUid() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     String userUid = prefs.getString('uid');
+    String alternateUid = prefs.getString('alt uid');
 
     uid = userUid;
+    altUid = alternateUid;
     print(uid);
   }
 
@@ -63,13 +68,13 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
     }
   }
 
-  Future checkMembersData(eventId, memberUid) async {
+  Future checkMembersData(eventId, altuid) async {
     try {
       String data = await _firestore
           .collection("events")
           .document(eventId)
           .collection('event members')
-          .document(memberUid)
+          .document(altUid)
           .collection('family members')
           .getDocuments()
           .then(
@@ -87,13 +92,13 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
     // value is a query snapshot of documents
   }
 
-  Future getFamilyName(String eventID, String uid) async {
+  Future getFamilyName(String eventID, String altUid) async {
     try {
       String famName = await _firestore
           .collection("events")
           .document(eventID)
           .collection("event members")
-          .document(uid)
+          .document(altUid)
           .get()
           .then(
             (docSnap) => docSnap.data['family name'],
@@ -113,10 +118,10 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
         getSelectedEventName().then(
           (_) {
             print('got the selected event name');
-            checkMembersData(selectedEventID, uid).then(
+            checkMembersData(selectedEventID, altUid).then(
               (_) {
                 print('checked member data');
-                getFamilyName(selectedEventID, uid).then(
+                getFamilyName(selectedEventID, altUid).then(
                   (_) {
                     print('got family name');
                     setState(() {});
@@ -203,9 +208,12 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
               height: 20,
             ),
             MemberOptionBar(
-              uid: uid,
+              altUid: altUid,
               memberNameController: _memberNameController,
+              inviteController: _inviteController,
               selectedEventID: selectedEventID,
+              familyName: familyName,
+              selectedEventName: selectedEventName,
               updateScreenFunction: () => getUid().then((_) {
                 print("got uid");
                 getSelectedEventID().then((_) {
@@ -213,10 +221,10 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
                   getSelectedEventName().then(
                     (_) {
                       print('got the selected event name');
-                      checkMembersData(selectedEventID, uid).then(
+                      checkMembersData(selectedEventID, altUid).then(
                         (_) {
                           print('checked member data');
-                          getFamilyName(selectedEventID, uid).then(
+                          getFamilyName(selectedEventID, altUid).then(
                             (_) {
                               print('got family name');
                               setState(() {});
@@ -273,7 +281,7 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
                               .collection("events")
                               .document(selectedEventID)
                               .collection('event members')
-                              .document(uid)
+                              .document(altUid)
                               .collection('family members')
                               .snapshots(),
                           builder: (BuildContext context,
@@ -295,6 +303,7 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
                                           memberName: document.documentID,
                                           memberType: document['member type'],
                                           uid: uid,
+                                          altUid: altUid,
                                           selectedEventID: selectedEventID,
                                           updateScreenFunction: () =>
                                               getUid().then((_) {
@@ -302,12 +311,13 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
                                               getSelectedEventName().then(
                                                 (_) {
                                                   checkMembersData(
-                                                          selectedEventID, uid)
+                                                          selectedEventID,
+                                                          altUid)
                                                       .then(
                                                     (_) {
                                                       getFamilyName(
                                                               selectedEventID,
-                                                              uid)
+                                                              altUid)
                                                           .then(
                                                         (_) {
                                                           setState(() {});
@@ -369,13 +379,15 @@ class Member extends StatelessWidget {
   final String uid;
   final String selectedEventID;
   final Function updateScreenFunction;
+  final String altUid;
 
   Member({
-    this.memberName,
-    this.memberType,
-    this.uid,
-    this.selectedEventID,
+    @required this.memberName,
+    @required this.memberType,
+    @required this.uid,
+    @required this.selectedEventID,
     @required this.updateScreenFunction,
+    @required this.altUid,
   });
   @override
   Widget build(BuildContext context) {
@@ -388,10 +400,10 @@ class Member extends StatelessWidget {
       ),
       child: InkWell(
         onTap: () {
-          Navigator.pushNamed(context, MyGiftsScreen.routeName,arguments: {
-            'uid':uid,
-            'selected event id':selectedEventID,
-            'member name':memberName,
+          Navigator.pushNamed(context, MyGiftsScreen.routeName, arguments: {
+            'uid': uid,
+            'selected event id': selectedEventID,
+            'member name': memberName,
           });
         },
         child: Card(
@@ -438,7 +450,7 @@ class Member extends StatelessWidget {
                       memberDelete(
                         context,
                         memberName,
-                        uid,
+                        altUid,
                         selectedEventID,
                         () => updateScreenFunction(),
                       ),
@@ -496,28 +508,10 @@ Widget memberTypeText(BuildContext context, String memberType) {
   );
 }
 
-class MemberDelete extends StatelessWidget {
-  final String memberName;
-  final String uid;
-  final String selectedEventID;
-  final Function updateScreenFunction;
-
-  MemberDelete({
-    @required this.memberName,
-    @required this.uid,
-    @required this.selectedEventID,
-    @required this.updateScreenFunction,
-  });
-  @override
-  Widget build(BuildContext context) {
-    return Container();
-  }
-}
-
 Widget memberDelete(
   BuildContext context,
   String memberName,
-  String uid,
+  String altUid,
   String selectedEventID,
   Function updateScreenFunction,
 ) {
@@ -531,7 +525,7 @@ Widget memberDelete(
       ),
       onPressed: () {
         _fire.deleteDependantMember(
-            uid: uid, eventId: selectedEventID, memberName: memberName);
+            uid: altUid, eventId: selectedEventID, memberName: memberName);
         updateScreenFunction();
       },
     ),
@@ -568,14 +562,20 @@ Widget memberNameInput({
 
 class MemberOptionBar extends StatefulWidget {
   final TextEditingController memberNameController;
-  final String uid;
+  final String altUid;
   final String selectedEventID;
   final updateScreenFunction;
+  final String selectedEventName;
+  final TextEditingController inviteController;
+  final String familyName;
   MemberOptionBar({
-    this.memberNameController,
-    this.uid,
-    this.selectedEventID,
+    @required this.memberNameController,
+    @required this.altUid,
+    @required this.selectedEventID,
     @required this.updateScreenFunction,
+    @required this.selectedEventName,
+    @required this.inviteController,
+    @required this.familyName,
   });
 
   @override
@@ -624,7 +624,7 @@ class _MemberOptionBarState extends State<MemberOptionBar> {
                             color: kPrimaryColor,
                             onPressed: () {
                               _fire.addDependantMember(
-                                uid: widget.uid,
+                                uid: widget.altUid,
                                 eventId: widget.selectedEventID,
                                 memberName: widget.memberNameController.text,
                               );
@@ -652,7 +652,100 @@ class _MemberOptionBarState extends State<MemberOptionBar> {
         ),
         MemberOptionButton(
           buttonTitle: 'Invite Collaborator',
-          onPressFunction: () {},
+          onPressFunction: () {
+            showDialog(
+              context: context,
+              builder: (BuildContext context) {
+                return AlertDialog(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10)),
+                  title: RichText(
+                    text: TextSpan(
+                      children: [
+                        TextSpan(
+                          text: "Invite to : ",
+                          style: kHeadingTextStyle.copyWith(
+                            fontSize: 20,
+                            color: Colors.black,
+                          ),
+                        ),
+                        TextSpan(
+                          text: widget.familyName,
+                          style: kHeadingTextStyle.copyWith(
+                            color: Colors.black,
+                            fontSize: 20,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  content: Container(
+                    height: 100,
+                    child: Column(
+                      children: <Widget>[
+                        displayNameInput(
+                          context: context,
+                          controller: widget.inviteController,
+                          icon: Icon(
+                            Icons.email,
+                            color: kPrimaryColor,
+                          ),
+                          hintText: 'email of recipient',
+                        ),
+                        Align(
+                          alignment: Alignment.bottomRight,
+                          child: Padding(
+                            padding: const EdgeInsets.only(right: 10),
+                            child: RaisedButton(
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                              color: kPrimaryColor,
+                              onPressed: () async {
+                                //fire invite member
+
+                                String host = await _firestore
+                                    .collection('user data')
+                                    .document(widget.altUid)
+                                    .get()
+                                    .then(
+                                      (docSnap) => docSnap.data['email'],
+                                    );
+
+                                String creationDate = await _firestore
+                                    .collection('events')
+                                    .document(widget.selectedEventID)
+                                    .get()
+                                    .then(
+                                      (docSnap) => docSnap['creation date'],
+                                    );
+
+                                _fire.sendInvite(
+                                  email: widget.inviteController.text,
+                                  eventId: widget.selectedEventID,
+                                  eventName: widget.selectedEventName,
+                                  uid: widget.altUid,
+                                  host: host,
+                                  creationDate: creationDate,
+                                  inviteType: 'family',
+                                );
+                                Navigator.pop(context);
+                              },
+                              child: Text(
+                                'Invite',
+                                style: kSubTextStyle.copyWith(
+                                    color: Colors.white, fontSize: 17),
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          },
           eventId: widget.selectedEventID,
         ),
       ],
@@ -720,5 +813,32 @@ Widget selectedEvent(BuildContext context, String selectedEventName) {
         ),
       ),
     ],
+  );
+}
+
+Widget displayNameInput({
+  BuildContext context,
+  TextEditingController controller,
+  Icon icon,
+  String hintText,
+}) {
+  return Center(
+    child: Container(
+      width: MediaQuery.of(context).size.width * 0.8,
+      child: TextFormField(
+        controller: controller,
+        maxLines: 1,
+        style: kSubTextStyle,
+        autofocus: false,
+        decoration: InputDecoration(
+            border: InputBorder.none,
+            hintStyle: kSubTextStyle,
+            labelStyle: TextStyle(
+              color: Colors.white,
+            ),
+            hintText: hintText,
+            icon: icon),
+      ),
+    ),
   );
 }

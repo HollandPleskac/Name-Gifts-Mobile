@@ -358,6 +358,7 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
                                           uid: uid,
                                           host: host,
                                           creationDate: creationDate,
+                                          inviteType: 'event',
                                         );
                                         Navigator.pop(context);
                                       },

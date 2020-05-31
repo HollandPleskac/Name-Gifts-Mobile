@@ -25,7 +25,7 @@ class Auth {
 
       _fire.createAccount(_user.uid, email);
 
-      return ['success', _user.uid];
+      return ['success', _user.uid, _user.uid];
     } catch (e) {
       return [e.message.toString(), ''];
     }
@@ -41,7 +41,10 @@ class Auth {
           email: email, password: password);
 
       FirebaseUser _user = _result.user;
-      return ['success', _user.uid];
+
+      String userUid = await _fire.determineSelectedEventType(_user.uid);
+
+      return ['success', _user.uid,userUid];
     } catch (e) {
       return [e.message.toString(), ''];
     }

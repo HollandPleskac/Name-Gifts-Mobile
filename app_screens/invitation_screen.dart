@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:name_gifts_v2/app_screens/home_screen.dart';
 import 'package:name_gifts_v2/constant.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,7 +16,7 @@ class InvitationScreen extends StatefulWidget {
 }
 
 class _InvitationScreenState extends State<InvitationScreen> {
-  TextEditingController _displayNameInEventController = TextEditingController();
+  TextEditingController _displayNameController = TextEditingController();
   String uid;
   bool isData;
 
@@ -119,7 +120,8 @@ class _InvitationScreenState extends State<InvitationScreen> {
                       );
                     case ConnectionState.active:
                       //if there is snapshot data and the list of doucments it returns is empty
-                      if (snapshot.data != null && snapshot.data.documents.isEmpty == false) {
+                      if (snapshot.data != null &&
+                          snapshot.data.documents.isEmpty == false) {
                         return Center(
                           child: ListView(
                             children: snapshot.data.documents.map(
@@ -131,8 +133,9 @@ class _InvitationScreenState extends State<InvitationScreen> {
                                   eventName: document['event name'],
                                   uid: uid,
                                   invitationEventId: document.documentID,
-                                  displayNameInEventController:
-                                      _displayNameInEventController,
+                                  displayNameController: _displayNameController,
+                                  familyName: document['family name'],
+                                  hostUid: document['host uid'],
                                 );
                               },
                             ).toList(),
@@ -159,9 +162,8 @@ class _InvitationScreenState extends State<InvitationScreen> {
                     case ConnectionState.done:
                       return Text('Connection state finished');
                       break;
-                      default:
+                    default:
                       return Text('nothing here');
-                    
                   }
                 },
               ),
@@ -214,7 +216,9 @@ class Invitation extends StatelessWidget {
   final String uid;
   final String eventName;
   final String invitationEventId;
-  final TextEditingController displayNameInEventController;
+  final TextEditingController displayNameController;
+  final String familyName;
+  final String hostUid;
 
   Invitation({
     @required this.eventCreationDate,
@@ -223,7 +227,9 @@ class Invitation extends StatelessWidget {
     @required this.uid,
     @required this.eventName,
     @required this.invitationEventId,
-    @required this.displayNameInEventController,
+    @required this.displayNameController,
+    @required this.familyName,
+    @required this.hostUid,
   });
   @override
   Widget build(BuildContext context) {
@@ -258,9 +264,12 @@ class Invitation extends StatelessWidget {
               eventName: eventName,
               invitationEventId: invitationEventId,
               uid: uid,
-              displayNameInEventController: displayNameInEventController,
+              displayNameController: displayNameController,
               creationDate: eventCreationDate,
               host: hostEmail,
+              invitationType: invitationType,
+              familyName: familyName,
+              hostUid: hostUid,
             ),
           ),
         ],
@@ -283,7 +292,7 @@ Widget invitationCard({
       Padding(
         padding: const EdgeInsets.only(left: 6),
         child: Text(
-          eventCreationDate,
+          eventCreationDate + ' | Invited to ' + invitationType,
           style: kSubTextStyle.copyWith(fontSize: 18),
         ),
       ),
@@ -353,17 +362,23 @@ class InvitationActions extends StatelessWidget {
   final String eventName;
   final String uid;
   final String invitationEventId;
-  final TextEditingController displayNameInEventController;
+  final TextEditingController displayNameController;
   final String creationDate;
   final String host;
+  final String invitationType;
+  final String familyName;
+  final String hostUid;
 
   InvitationActions({
     @required this.eventName,
     @required this.uid,
     @required this.invitationEventId,
-    @required this.displayNameInEventController,
+    @required this.displayNameController,
     @required this.creationDate,
     @required this.host,
+    @required this.invitationType,
+    @required this.familyName,
+    @required this.hostUid,
   });
   @override
   Widget build(BuildContext context) {
@@ -383,9 +398,12 @@ class InvitationActions extends StatelessWidget {
                   eventName: eventName,
                   uid: uid,
                   invitationEventId: invitationEventId,
-                  displayNameInEventController: displayNameInEventController,
+                  displayNameController: displayNameController,
                   creationDate: creationDate,
                   host: host,
+                  invitationType: invitationType,
+                  familyName: familyName,
+                  hostUid: hostUid,
                 ),
                 IconButton(
                   icon: Icon(
@@ -411,15 +429,21 @@ class AcceptInviteToEvent extends StatefulWidget {
   final String uid;
   final String invitationEventId;
   final String creationDate;
-  final TextEditingController displayNameInEventController;
+  final TextEditingController displayNameController;
   final String host;
+  final String invitationType;
+  final String familyName;
+  final String hostUid;
   AcceptInviteToEvent({
     @required this.eventName,
     @required this.uid,
     @required this.invitationEventId,
     @required this.creationDate,
-    @required this.displayNameInEventController,
+    @required this.displayNameController,
     @required this.host,
+    @required this.invitationType,
+    @required this.familyName,
+    @required this.hostUid,
   });
 
   @override
@@ -435,68 +459,138 @@ class _AcceptInviteToEventState extends State<AcceptInviteToEvent> {
         color: Colors.white,
       ),
       onPressed: () {
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-              title: Text(
-                'Join ' + widget.eventName.toString(),
-                style: kHeadingTextStyle,
-              ),
-              content: Container(
-                height: 110,
-                child: Column(
-                  children: <Widget>[
-                    displayNameInput(
-                      context: context,
-                      controller: widget.displayNameInEventController,
-                      icon: Icon(
-                        Icons.event_note,
-                        color: kPrimaryColor,
-                      ),
-                      hintText: 'your name in the event',
+        print(widget.hostUid);
+        widget.invitationType == 'event'
+            ? showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    Align(
-                      alignment: Alignment.bottomRight,
-                      child: Padding(
-                        padding: const EdgeInsets.only(right: 10),
-                        child: RaisedButton(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(2),
+                    title: Text(
+                      'Join ' + widget.eventName.toString(),
+                      style: kHeadingTextStyle,
+                    ),
+                    content: Container(
+                      height: 110,
+                      child: Column(
+                        children: <Widget>[
+                          displayNameInput(
+                            context: context,
+                            controller: widget.displayNameController,
+                            icon: Icon(
+                              Icons.event_note,
+                              color: kPrimaryColor,
+                            ),
+                            hintText: 'your name in the event',
                           ),
-                          color: kPrimaryColor,
-                          onPressed: () {
-                            
-                            _fire.acceptInviteToEvent(
-                              displayNameForEvent:
-                                  widget.displayNameInEventController.text,
-                              eventName: widget.eventName,
-                              uid: widget.uid,
-                              invitationEventId: widget.invitationEventId,
-                              creationDate: widget.creationDate,
-                              host: widget.host,
-                            );
-                            Navigator.pop(context);
+                          Align(
+                            alignment: Alignment.bottomRight,
+                            child: Padding(
+                              padding: const EdgeInsets.only(right: 10),
+                              child: RaisedButton(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                                color: kPrimaryColor,
+                                onPressed: () {
+                                  _fire.acceptInvite(
+                                    displayNameForEvent:
+                                        widget.displayNameController.text,
+                                    eventName: widget.eventName,
+                                    uid: widget.uid,
+                                    invitationEventId: widget.invitationEventId,
+                                    creationDate: widget.creationDate,
+                                    host: widget.host,
+                                    inviteType: widget.invitationType,
+                                  );
+                                  Navigator.pop(context);
 
-                            setState(() {});
-                          },
-                          child: Text(
-                            'Join',
-                            style: kSubTextStyle.copyWith(
-                                color: Colors.white, fontSize: 17),
+                                  setState(() {});
+                                },
+                                child: Text(
+                                  'Join',
+                                  style: kSubTextStyle.copyWith(
+                                      color: Colors.white, fontSize: 17),
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
+                  );
+                },
+              )
+            : showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    title: Text(
+                      'Join ' + widget.familyName.toString(),
+                      style: kHeadingTextStyle,
+                    ),
+                    content: Container(
+                      height: 110,
+                      child: Column(
+                        children: <Widget>[
+                          displayNameInput(
+                            context: context,
+                            controller: widget.displayNameController,
+                            icon: Icon(
+                              Icons.event_note,
+                              color: kPrimaryColor,
+                            ),
+                            hintText: 'your name in the family',
+                          ),
+                          Align(
+                            alignment: Alignment.bottomRight,
+                            child: Padding(
+                              padding: const EdgeInsets.only(right: 10),
+                              child: RaisedButton(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                                color: kPrimaryColor,
+                                onPressed: () async {
+                                  _fire.acceptInviteToFamily(
+                                    displayNameForFamily:
+                                        widget.displayNameController.text,
+                                    eventName: widget.eventName,
+                                    uid: widget.uid,
+                                    invitationEventId: widget.invitationEventId,
+                                    creationDate: widget.creationDate,
+                                    host: widget.host,
+                                    hostUid: widget.hostUid,
+                                    inviteType: widget.invitationType,
+                                  );
+                                  // when invited to family the host uid will be used
+                                  SharedPreferences prefs = await SharedPreferences.getInstance();
+                                  prefs.setString('uid', widget.hostUid);
+
+
+                                  Navigator.pop(context);
+
+                                  setState(() {});
+                                },
+                                child: Text(
+                                  'Join',
+                                  style: kSubTextStyle.copyWith(
+                                      color: Colors.white, fontSize: 17),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
       },
     );
   }
