@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../auth_screens/sign_in_screen.dart';
 import '../logic/auth.dart';
@@ -15,7 +16,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-
   String uid;
 
   Future getUid() async {
@@ -31,14 +31,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
   void initState() {
     getUid().then((_) {
       print("got uid");
-      setState(() {
-        
-      });
+      setState(() {});
     });
 
     super.initState();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -48,7 +45,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ClipPath(
             clipper: CClipper(),
             child: Container(
-              height: MediaQuery.of(context).size.height*0.4,
+              height: MediaQuery.of(context).size.height * 0.39,
               width: double.infinity,
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -59,12 +56,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Color(0xFF11249F),
                   ],
                 ),
-                image: DecorationImage(
-                  alignment: Alignment.topRight,
-                  image: AssetImage(
-                    "assets/images/virus.png",
-                  ),
-                ),
+                // image: DecorationImage(
+                //   alignment: Alignment.topRight,
+                //   image: AssetImage(
+                //     "assets/images/virus.png",
+                //   ),
+                // ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -73,12 +70,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Expanded(
                     child: Stack(
                       children: <Widget>[
-                        // SvgPicture.asset(
-                        //   'assets/icons/Drcorona.svg',
-                        //   width: 210,
-                        //   fit: BoxFit.fitWidth,
-                        //   alignment: Alignment.topCenter,
-                        // ),
+                        Padding(
+                          padding: const EdgeInsets.only(left: 120, bottom: 02),
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: SvgPicture.asset(
+                              'assets/images/undraw_mobile_web_2g8b.svg',
+                              width: 150,
+                              fit: BoxFit.fitWidth,
+                            ),
+                          ),
+                        ),
                         Align(
                           alignment: Alignment.topCenter,
                           child: Padding(
@@ -88,11 +90,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             child: Text(
                               'Profile',
                               style: kHeadingTextStyle.copyWith(
-                                  color: Colors.white),
+                                  color: Colors.white, fontSize: 32),
                             ),
                           ),
                         ),
-                        
                       ],
                     ),
                   ),
@@ -104,7 +105,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
               accountSignOut(context),
-              accountDelete(context,uid),
+              accountDelete(context, uid),
             ],
           ),
         ],

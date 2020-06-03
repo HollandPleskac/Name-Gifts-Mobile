@@ -3,6 +3,7 @@ import 'package:name_gifts_v2/app_screens/home_screen.dart';
 import 'package:name_gifts_v2/constant.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../constant.dart';
 import '../logic/fire.dart';
@@ -48,7 +49,7 @@ class _InvitationScreenState extends State<InvitationScreen> {
             ClipPath(
               clipper: SClipper(),
               child: Container(
-                height: MediaQuery.of(context).size.height * 0.4,
+                height: MediaQuery.of(context).size.height * 0.39,
                 width: double.infinity,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -59,12 +60,12 @@ class _InvitationScreenState extends State<InvitationScreen> {
                       Color(0xFF11249F),
                     ],
                   ),
-                  image: DecorationImage(
-                    alignment: Alignment.topLeft,
-                    image: AssetImage(
-                      "assets/images/virus.png",
-                    ),
-                  ),
+                  // image: DecorationImage(
+                  //   alignment: Alignment.topLeft,
+                  //   image: AssetImage(
+                  //     "assets/images/virus.png",
+                  //   ),
+                  // ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -73,22 +74,30 @@ class _InvitationScreenState extends State<InvitationScreen> {
                     Expanded(
                       child: Stack(
                         children: <Widget>[
-                          // SvgPicture.asset(
-                          //   'assets/icons/Drcorona.svg',
-                          //   width: 210,
-                          //   fit: BoxFit.fitWidth,
-                          //   alignment: Alignment.topCenter,
-                          // ),
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              bottom: 90,
+                              left: 40,
+                            ),
+                            child: Align(
+                              alignment: Alignment.bottomLeft,
+                              child: SvgPicture.asset(
+                                'assets/images/undraw_invite_i6u7.svg',
+                                width: 150,
+                                fit: BoxFit.fitWidth,
+                              ),
+                            ),
+                          ),
                           Align(
                             alignment: Alignment.topCenter,
                             child: Padding(
                               padding: EdgeInsets.only(
-                                top: MediaQuery.of(context).size.height * 0.11,
+                                top: MediaQuery.of(context).size.height * 0.075,
                               ),
                               child: Text(
                                 'My Invitations',
                                 style: kHeadingTextStyle.copyWith(
-                                    color: Colors.white),
+                                    color: Colors.white, fontSize: 32),
                               ),
                             ),
                           ),
@@ -124,6 +133,7 @@ class _InvitationScreenState extends State<InvitationScreen> {
                           snapshot.data.documents.isEmpty == false) {
                         return Center(
                           child: ListView(
+                            physics: BouncingScrollPhysics(),
                             children: snapshot.data.documents.map(
                               (DocumentSnapshot document) {
                                 return Invitation(
@@ -405,12 +415,9 @@ class InvitationActions extends StatelessWidget {
                   familyName: familyName,
                   hostUid: hostUid,
                 ),
-                IconButton(
-                  icon: Icon(
-                    Icons.delete_outline,
-                    color: Colors.white,
-                  ),
-                  onPressed: () {},
+                DeleteInvite(
+                  uid: uid,
+                  invitationEventId: invitationEventId,
                 ),
               ],
             ),
@@ -420,6 +427,37 @@ class InvitationActions extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class DeleteInvite extends StatefulWidget {
+  final String uid;
+  final String invitationEventId;
+
+  DeleteInvite({
+    @required this.uid,
+    @required this.invitationEventId,
+  });
+  @override
+  _DeleteInviteState createState() => _DeleteInviteState();
+}
+
+class _DeleteInviteState extends State<DeleteInvite> {
+  @override
+  Widget build(BuildContext context) {
+    return IconButton(
+      icon: Icon(
+        Icons.delete_outline,
+        color: Colors.white,
+      ),
+      onPressed: () {
+        _fire.deleteInvite(
+          widget.uid,
+          widget.invitationEventId,
+        );
+        setState(() {});
+      },
     );
   }
 }
@@ -458,7 +496,7 @@ class _AcceptInviteToEventState extends State<AcceptInviteToEvent> {
         Icons.check,
         color: Colors.white,
       ),
-      onPressed: () {
+      onPressed: () async {
         print(widget.hostUid);
         widget.invitationType == 'event'
             ? showDialog(
@@ -523,74 +561,23 @@ class _AcceptInviteToEventState extends State<AcceptInviteToEvent> {
                   );
                 },
               )
-            : showDialog(
-                context: context,
-                builder: (BuildContext context) {
-                  return AlertDialog(
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    title: Text(
-                      'Join ' + widget.familyName.toString(),
-                      style: kHeadingTextStyle,
-                    ),
-                    content: Container(
-                      height: 110,
-                      child: Column(
-                        children: <Widget>[
-                          displayNameInput(
-                            context: context,
-                            controller: widget.displayNameController,
-                            icon: Icon(
-                              Icons.event_note,
-                              color: kPrimaryColor,
-                            ),
-                            hintText: 'your name in the family',
-                          ),
-                          Align(
-                            alignment: Alignment.bottomRight,
-                            child: Padding(
-                              padding: const EdgeInsets.only(right: 10),
-                              child: RaisedButton(
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(2),
-                                ),
-                                color: kPrimaryColor,
-                                onPressed: () async {
-                                  _fire.acceptInviteToFamily(
-                                    displayNameForFamily:
-                                        widget.displayNameController.text,
-                                    eventName: widget.eventName,
-                                    uid: widget.uid,
-                                    invitationEventId: widget.invitationEventId,
-                                    creationDate: widget.creationDate,
-                                    host: widget.host,
-                                    hostUid: widget.hostUid,
-                                    inviteType: widget.invitationType,
-                                  );
-                                  // when invited to family the host uid will be used
-                                  SharedPreferences prefs = await SharedPreferences.getInstance();
-                                  prefs.setString('uid', widget.hostUid);
-
-
-                                  Navigator.pop(context);
-
-                                  setState(() {});
-                                },
-                                child: Text(
-                                  'Join',
-                                  style: kSubTextStyle.copyWith(
-                                      color: Colors.white, fontSize: 17),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
+            : _fire.acceptInviteToFamily(
+                displayNameForFamily: widget.displayNameController.text,
+                eventName: widget.eventName,
+                uid: widget.uid,
+                invitationEventId: widget.invitationEventId,
+                creationDate: widget.creationDate,
+                host: widget.host,
+                hostUid: widget.hostUid,
+                inviteType: widget.invitationType,
               );
+        // when invited to family the host uid will be used
+        SharedPreferences prefs = await SharedPreferences.getInstance();
+        prefs.setString('alt uid', widget.hostUid);
+
+        Navigator.pop(context);
+
+        setState(() {});
       },
     );
   }

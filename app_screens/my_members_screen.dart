@@ -1,8 +1,10 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:name_gifts_v2/constant.dart';
 import 'package:polygon_clipper/polygon_clipper.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../logic/fire.dart';
 import '../sub_screens/my_gifts_screen.dart';
@@ -147,7 +149,7 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
             ClipPath(
               clipper: SClipper(),
               child: Container(
-                height: MediaQuery.of(context).size.height * 0.4,
+                height: MediaQuery.of(context).size.height * 0.39,
                 width: double.infinity,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -158,34 +160,49 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
                       Color(0xFF11249F),
                     ],
                   ),
-                  image: DecorationImage(
-                    alignment: Alignment.topCenter,
-                    image: AssetImage(
-                      "assets/images/virus.png",
-                    ),
-                  ),
+                  // image: DecorationImage(
+                  //   alignment: Alignment.topCenter,
+                  //   // image: AssetImage(
+                  //   //   "assets/images/virus.png",
+                  //   // ),
+                  // ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    SizedBox(height: 90),
+                    SizedBox(height: 75),
                     Expanded(
                       child: Stack(
                         children: <Widget>[
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              bottom: 100,
+                              right: 170,
+                            ),
+                            child: Align(
+                              alignment: Alignment.bottomCenter,
+                              child: SvgPicture.asset(
+                                'assets/images/undraw_donut_love_kau1.svg',
+                                width: 200,
+                                fit: BoxFit.fitWidth,
+                              ),
+                            ),
+                          ),
                           Align(
                             alignment: Alignment.topCenter,
                             child: Padding(
                               padding: EdgeInsets.only(
-                                top: MediaQuery.of(context).size.height * 0.035,
+                                top: MediaQuery.of(context).size.height * 0.00,
                               ),
                               child: Text(
-                                selectedEventName == 'No Selected Event'
-                                    ? 'My Members'
-                                    : familyName == null
-                                        ? ''
-                                        : familyName.toString() + '\'s Members',
+                                'My Members',
+                                // selectedEventName == 'No Selected Event'
+                                //     ? 'My Members'
+                                //     : familyName == null
+                                //         ? ''
+                                //         : familyName.toString() + '\'s Members',
                                 style: kHeadingTextStyle.copyWith(
-                                    color: Colors.white),
+                                    color: Colors.white, fontSize: 32),
                               ),
                             ),
                           ),
@@ -197,16 +214,16 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
               ),
             ),
 
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 20),
-                child: selectedEvent(context, selectedEventName),
-              ),
-            ),
-            SizedBox(
-              height: 20,
-            ),
+            // Align(
+            //   alignment: Alignment.centerLeft,
+            //   child: Padding(
+            //     padding: const EdgeInsets.only(left: 20),
+            //     child: selectedEvent(context, selectedEventName),
+            //   ),
+            // ),
+            // SizedBox(
+            //   height: 15,
+            // ),
             MemberOptionBar(
               altUid: altUid,
               memberNameController: _memberNameController,
@@ -238,7 +255,7 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
               }),
             ),
             SizedBox(
-              height: 20,
+              height: 10,
             ),
 
             ///
@@ -246,7 +263,7 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
             ///
 
             Container(
-              height: 325,
+              height: 390,
               child: isMembersData == null && selectedEventID != 'no event'
                   ? Center(
                       child: Column(
@@ -297,6 +314,7 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
                               default:
                                 return Center(
                                   child: ListView(
+                                    physics: BouncingScrollPhysics(),
                                     children: snapshot.data.documents.map(
                                       (DocumentSnapshot document) {
                                         return Member(
@@ -392,7 +410,7 @@ class Member extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: EdgeInsets.only(left: 20, right: 20, bottom: 20),
+      margin: EdgeInsets.only(left: 20, right: 20, bottom: 15),
       height: 80,
       width: double.infinity,
       decoration: BoxDecoration(
@@ -401,7 +419,7 @@ class Member extends StatelessWidget {
       child: InkWell(
         onTap: () {
           Navigator.pushNamed(context, MyGiftsScreen.routeName, arguments: {
-            'uid': uid,
+            'uid': altUid,
             'selected event id': selectedEventID,
             'member name': memberName,
           });
@@ -478,6 +496,7 @@ Widget hexagon(BuildContext context) {
       //   PolygonBoxShadow(color: Colors.grey, elevation: 5.0)
       // ],
       child: Container(
+        //color: kPrimaryColor,
         color: kPrimaryColor,
         child: Icon(
           Icons.person,
@@ -588,6 +607,7 @@ class _MemberOptionBarState extends State<MemberOptionBar> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
+        Container(),
         MemberOptionButton(
           buttonTitle: 'Add Member',
           onPressFunction: () => showDialog(
@@ -650,6 +670,7 @@ class _MemberOptionBarState extends State<MemberOptionBar> {
           ),
           eventId: widget.selectedEventID,
         ),
+        Container(),
         MemberOptionButton(
           buttonTitle: 'Invite Collaborator',
           onPressFunction: () {
@@ -748,6 +769,7 @@ class _MemberOptionBarState extends State<MemberOptionBar> {
           },
           eventId: widget.selectedEventID,
         ),
+        Container(),
       ],
     );
   }
@@ -772,10 +794,10 @@ class MemberOptionButton extends StatelessWidget {
               height: 40,
               width: 160,
               decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(25),
+                  borderRadius: BorderRadius.circular(5),
                   color: eventId == 'no selected event' || eventId == ''
                       ? Colors.grey
-                      : Color.fromRGBO(42, 61, 243, 1).withOpacity(0.9)),
+                      : Colors.blue[600]),
               child: Center(
                 child: Text(
                   buttonTitle,
@@ -792,29 +814,30 @@ class MemberOptionButton extends StatelessWidget {
   }
 }
 
-Widget selectedEvent(BuildContext context, String selectedEventName) {
-  return Column(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        "Selected Event",
-        style: kTitleTextstyle.copyWith(
-          color: Colors.black,
-          fontWeight: FontWeight.w500,
-          fontSize: 28,
-        ),
-      ),
-      Text(
-        selectedEventName == '' ? 'No selected event' : selectedEventName,
-        style: kTitleTextstyle.copyWith(
-          fontSize: 18,
-          color: Colors.black,
-          fontWeight: FontWeight.w400,
-        ),
-      ),
-    ],
-  );
-}
+// Widget selectedEvent(BuildContext context, String selectedEventName) {
+//   return Column(
+//     crossAxisAlignment: CrossAxisAlignment.start,
+//     children: [
+//       // Text(
+//       //   "Selected Event",
+//       //   style: kTitleTextstyle.copyWith(
+//       //     color: Colors.black,
+//       //     fontWeight: FontWeight.w400,
+//       //     fontSize: 28,
+//       //     fontFamily: "sans-serif"
+//       //   ),
+//       // ),
+//       // Text(
+//       //   selectedEventName == '' ? 'No selected event' : selectedEventName,
+//       //   style: kTitleTextstyle.copyWith(
+//       //     fontSize: 16,
+//       //     color: Colors.black,
+//       //     fontWeight: FontWeight.w400,
+//       //   ),
+//       // ),
+//     ],
+//   );
+// }
 
 Widget displayNameInput({
   BuildContext context,

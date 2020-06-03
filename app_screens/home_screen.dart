@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../logic/fire.dart';
 import '../constant.dart';
@@ -36,7 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
 
     String userUid = prefs.getString('uid');
-  String alternateUid = prefs.getString('alt uid');
+    String alternateUid = prefs.getString('alt uid');
 
     uid = userUid;
     altUid = alternateUid;
@@ -154,7 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 top: MediaQuery.of(context).size.height * 0.06,
                 right: MediaQuery.of(context).size.width * 0.05,
               ),
-              height: MediaQuery.of(context).size.height * 0.4,
+              height: MediaQuery.of(context).size.height * 0.39,
               //height:350
               width: double.infinity,
               decoration: BoxDecoration(
@@ -166,9 +167,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     Color(0xFF11249F),
                   ],
                 ),
-                image: DecorationImage(
-                  image: AssetImage("assets/images/virus.png"),
-                ),
+                // image: DecorationImage(
+                //   image: AssetImage("assets/images/virus.png"),
+                // ),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -177,16 +178,24 @@ class _HomeScreenState extends State<HomeScreen> {
                   Expanded(
                     child: Stack(
                       children: <Widget>[
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 60),
+                          child: Align(
+                            alignment: Alignment.bottomCenter,
+                            child: SvgPicture.asset(
+                              'assets/images/undraw_online_articles_79ff.svg',
+                              width: 200,
+                              fit: BoxFit.fitWidth,
+                            ),
+                          ),
+                        ),
                         Align(
                           alignment: Alignment.topCenter,
-                          child: Padding(
-                            padding: EdgeInsets.only(
-                              top: MediaQuery.of(context).size.height * 0.073,
-                            ),
-                            child: Text(
-                              'View Selected Event',
-                              style: kHeadingTextStyle.copyWith(
-                                  color: Colors.white),
+                          child: Text(
+                            'View Selected Event',
+                            style: kHeadingTextStyle.copyWith(
+                              color: Colors.white,
+                              fontSize: 32,
                             ),
                           ),
                         ),
@@ -198,6 +207,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
+          SizedBox(height: 10,),
           ////
           ////
           ////
@@ -307,7 +317,6 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     Spacer(),
-
                     InkWell(
                       child: Text(
                         "View Event",
@@ -422,7 +431,7 @@ Widget family({
     padding: EdgeInsets.symmetric(
         horizontal: MediaQuery.of(context).size.width * 0.022),
     child: Container(
-      // height: 250, do not need height because height is calculated from somewhere else
+      // height: 250, do not need height because height is calculated from height of listview
       width: MediaQuery.of(context).size.width * 0.95,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.only(

@@ -6,7 +6,6 @@ import 'package:intl/intl.dart';
 final Firestore _firestore = Firestore.instance;
 
 class Fire {
-
   //checks if the selected event is a family invite - if so returns uid of the family invite
   Future<String> determineSelectedEventType(String userUid) async {
     String selectedEvent = await _firestore
@@ -14,6 +13,9 @@ class Fire {
         .document(userUid)
         .get()
         .then((docSnap) => docSnap.data['selected event']);
+    if (selectedEvent == '') {
+      return userUid;
+    }
 
     String eventType = await _firestore
         .collection('user data')
@@ -31,7 +33,7 @@ class Fire {
           .document(selectedEvent)
           .get()
           .then((docSnap) => docSnap.data['host uid']);
-          return hostUid;
+      return hostUid;
     }
     return userUid;
   }
@@ -362,22 +364,21 @@ class Fire {
       },
     );
 
-    //initializes and gifts value as well as display name
-    //TODO : add plus one to total members count
-    _firestore
-        .collection('events')
-        .document(invitationEventId)
-        .collection('event members')
-        .document(uid)
-        .collection('family members')
-        .document(displayNameForFamily)
-        .setData(
-      {
-        'gifts': 0,
-        'member type': 'independent member',
-        'linked': uid,
-      },
-    );
+    // //initializes and gifts value as well as display name
+    // _firestore
+    //     .collection('events')
+    //     .document(invitationEventId)
+    //     .collection('event members')
+    //     .document(uid)
+    //     .collection('family members')
+    //     .document(displayNameForFamily)
+    //     .setData(
+    //   {
+    //     'gifts': 0,
+    //     'member type': 'independent member',
+    //     'linked': uid,
+    //   },
+    // );
 
     // deletes the events out of invites list
     _firestore
@@ -388,6 +389,15 @@ class Fire {
         .delete();
 
     setSelectedEvent(uid, invitationEventId);
+  }
+
+  void deleteInvite(String uid, String invitationEventId) {
+    _firestore
+        .collection('user data')
+        .document(uid)
+        .collection('my invites')
+        .document(invitationEventId)
+        .delete();
   }
 
   ///

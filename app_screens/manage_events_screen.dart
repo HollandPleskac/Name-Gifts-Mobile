@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:name_gifts_v2/constant.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 
 import '../logic/fire.dart';
 
@@ -117,7 +118,7 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
             ClipPath(
               clipper: CClipper(),
               child: Container(
-                height: MediaQuery.of(context).size.height * 0.4,
+                height: MediaQuery.of(context).size.height * 0.39,
                 width: double.infinity,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
@@ -128,12 +129,12 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
                       Color(0xFF11249F),
                     ],
                   ),
-                  image: DecorationImage(
-                    alignment: Alignment.topCenter,
-                    image: AssetImage(
-                      "assets/images/virus.png",
-                    ),
-                  ),
+                  // image: DecorationImage(
+                  //   alignment: Alignment.topCenter,
+                  //   image: AssetImage(
+                  //     "assets/images/virus.png",
+                  //   ),
+                  // ),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -148,16 +149,31 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
                           //   fit: BoxFit.fitWidth,
                           //   alignment: Alignment.topCenter,
                           // ),
+                          Padding(
+                            padding:
+                                const EdgeInsets.only(left: 30, bottom: 80),
+                            child: Align(
+                              alignment: Alignment.centerLeft,
+                              child: SvgPicture.asset(
+                                'assets/images/undraw_online_calendar_kvu2.svg',
+                                width: 140,
+                                fit: BoxFit.fitWidth,
+                              ),
+                            ),
+                          ),
                           Align(
                             alignment: Alignment.topCenter,
                             child: Padding(
                               padding: EdgeInsets.only(
                                 top: MediaQuery.of(context).size.height * 0.1,
+                                left: 160,
                               ),
                               child: Text(
                                 'Manage Events',
                                 style: kHeadingTextStyle.copyWith(
-                                    color: Colors.white),
+                                  color: Colors.white,
+                                  fontSize: 32,
+                                ),
                               ),
                             ),
                           ),
@@ -387,7 +403,7 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
             ///
 
             SizedBox(
-              height: 20,
+              height: 10,
             ),
 
             ///
@@ -395,7 +411,7 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
             ///
 
             Container(
-              height: 230,
+              height: 320,
               child: isUserEvents == null
                   ? Center(
                       child: Column(
@@ -427,6 +443,7 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
                           default:
                             return Center(
                               child: ListView(
+                                physics: BouncingScrollPhysics(),
                                 children: snapshot.data.documents.map(
                                   (DocumentSnapshot document) {
                                     return Event(
@@ -518,25 +535,27 @@ class _EventState extends State<Event> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 25),
+      padding: const EdgeInsets.only(bottom: 20),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.center,
         children: <Widget>[
           Container(
-            height: 80,
-            width: MediaQuery.of(context).size.width * 0.92,
+            height: 78,
+            width: MediaQuery.of(context).size.width * 0.9,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.only(
-                topRight: Radius.circular(50),
-                bottomRight: Radius.circular(50),
+                topRight: Radius.circular(100),
+                bottomRight: Radius.circular(100),
+                // bottomLeft: Radius.circular(50),
+                topLeft: Radius.circular(70),
               ),
               gradient: LinearGradient(
                 begin: Alignment.topCenter,
                 end: Alignment.bottomRight,
                 colors: [
                   kPrimaryColor,
-                  Color.fromRGBO(42, 61, 243, 1).withOpacity(0.9),
+                  Color.fromRGBO(42, 61, 243, 1),
                 ],
               ),
             ),
@@ -590,7 +609,11 @@ class _EventState extends State<Event> {
 Widget eventTitleText(BuildContext context, String eventName) {
   return Text(
     eventName,
-    style: kHeadingTextStyle.copyWith(color: Colors.white, fontSize: 18),
+    style: kHeadingTextStyle.copyWith(
+      color: Colors.white,
+      fontSize: 18,
+      fontWeight: FontWeight.w600,
+    ),
   );
 }
 
@@ -645,7 +668,7 @@ Widget topBarButton(BuildContext context, String buttonTitle,
                         (selectedEventId == 'no selected event' ||
                             selectedEventId == '')
                     ? Colors.grey
-                    : Color.fromRGBO(42, 61, 243, 1).withOpacity(0.9)),
+                    : Color.fromRGBO(42, 61, 243, 1)),
             child: Center(
               child: Text(
                 buttonTitle,
@@ -667,7 +690,7 @@ Widget selectedEvent(BuildContext context, selectedEvent) {
         "Selected Event",
         style: kTitleTextstyle.copyWith(
           color: Colors.black,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w400,
           fontSize: 28,
         ),
       ),
@@ -675,7 +698,7 @@ Widget selectedEvent(BuildContext context, selectedEvent) {
         selectedEvent,
         style: kTitleTextstyle.copyWith(
           fontSize: 18,
-          color: Colors.black,
+          color: Colors.black87,
           fontWeight: FontWeight.w400,
         ),
       ),

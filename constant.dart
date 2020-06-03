@@ -8,6 +8,7 @@ const kTextLightColor = Color(0xFF959595);
 const kGreenColor = Colors.green;
 const kRedColor = Colors.red;
 const kPrimaryColor = Color(0xFF3382CC);
+// const kPrimaryColor = Colors.lightBlue;
 final kShadowColor = Color(0xFFB7B7B7).withOpacity(.16);
 final kActiveShadowColor = Color(0xFF4056C6).withOpacity(.15);
 final kGreyColor = Colors.grey;

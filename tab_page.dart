@@ -57,7 +57,7 @@ class _TabPageState extends State<TabPage> {
       textColor: Colors.pink,
       iconSize: 24,
       padding: padding,
-      icon: LineIcons.street_view,
+      icon: LineIcons.home,
       text: 'Home',
     ));
 
@@ -79,7 +79,7 @@ class _TabPageState extends State<TabPage> {
       textColor: Colors.amber[600],
       iconSize: 24,
       padding: padding,
-      icon: LineIcons.rocket,
+      icon: Icons.event,
       text: 'Manage Events',
     ));
 
@@ -90,7 +90,7 @@ class _TabPageState extends State<TabPage> {
       textColor: Colors.green,
       iconSize: 24,
       padding: padding,
-      icon: LineIcons.leaf,
+      icon: LineIcons.envelope,
       text: 'Invitations',
     ));
 
