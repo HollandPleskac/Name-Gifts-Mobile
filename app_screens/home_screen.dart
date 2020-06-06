@@ -179,12 +179,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Stack(
                       children: <Widget>[
                         Padding(
-                          padding: const EdgeInsets.only(bottom: 60),
+                          padding: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.07),
                           child: Align(
                             alignment: Alignment.bottomCenter,
                             child: SvgPicture.asset(
                               'assets/images/undraw_online_articles_79ff.svg',
-                              width: 200,
+                              width: MediaQuery.of(context).size.height * 0.245,
                               fit: BoxFit.fitWidth,
                             ),
                           ),
@@ -207,7 +207,7 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          SizedBox(height: 10,),
+          SizedBox(height: MediaQuery.of(context).size.height*0.011,),
           ////
           ////
           ////
