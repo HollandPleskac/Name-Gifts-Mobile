@@ -28,15 +28,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
   void signup() async {
     ///
     ///
-    void setUid(String uidValue) async {
+    void setUid(String uidValue, String altUidValue) async {
       SharedPreferences prefs = await SharedPreferences.getInstance();
 
       await prefs.setString(
         'uid',
         uidValue,
       );
+      await prefs.setString('alt uid', altUidValue);
     }
-
 
     if (_passwordController.text == _passwordConfirmController.text) {
       List authPackage = await _auth.signUp(
@@ -47,11 +47,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
       //authPackage[0] is either success or contains the error message
       //authPackage[1] is either the user uid or null
+      //authPackage[2] is the user uid
 
       if (authPackage[0] == 'success') {
-
-        // sets the uid - authPackage[1] is the uid
-        setUid(authPackage[1]);
+        setUid(
+          authPackage[1],
+          authPackage[2],
+        );
+        print('auth 1 ' + authPackage[1],);
+        print('auth 2 '+ authPackage[2],);
 
         Navigator.push(
           context,
@@ -84,18 +88,18 @@ class _SignUpScreenState extends State<SignUpScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: <Widget>[
               SizedBox(
-                height: MediaQuery.of(context).size.height*0.07,
+                height: MediaQuery.of(context).size.height * 0.07,
               ),
               signInText(context),
               SizedBox(
-                height: MediaQuery.of(context).size.height*0.0425,
+                height: MediaQuery.of(context).size.height * 0.0425,
               ),
               Container(
-                width: MediaQuery.of(context).size.width*0.45,
+                width: MediaQuery.of(context).size.width * 0.45,
                 child: Image.asset('assets/images/gift.png'),
               ),
               SizedBox(
-                height: MediaQuery.of(context).size.height*0.0725,
+                height: MediaQuery.of(context).size.height * 0.0725,
               ),
               signInInput(
                 context: context,
@@ -109,7 +113,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 obscureText: false,
               ),
               SizedBox(
-                height: MediaQuery.of(context).size.height*0.03,
+                height: MediaQuery.of(context).size.height * 0.03,
               ),
               signInInput(
                 context: context,
@@ -123,7 +127,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 obscureText: true,
               ),
               SizedBox(
-                height: MediaQuery.of(context).size.height*0.03,
+                height: MediaQuery.of(context).size.height * 0.03,
               ),
               signInInput(
                 context: context,
@@ -137,15 +141,15 @@ class _SignUpScreenState extends State<SignUpScreen> {
                 obscureText: true,
               ),
               SizedBox(
-                height: MediaQuery.of(context).size.height*0.009,
+                height: MediaQuery.of(context).size.height * 0.009,
               ),
               signUpErrorText(context, errorMessage),
               SizedBox(
-                height: MediaQuery.of(context).size.height*0.009,
+                height: MediaQuery.of(context).size.height * 0.009,
               ),
               signInButton(context, () => signup()),
               SizedBox(
-                height: MediaQuery.of(context).size.height*0.024,
+                height: MediaQuery.of(context).size.height * 0.024,
               ),
               signInAlreadyHaveAccount(context),
             ],
@@ -187,7 +191,8 @@ Widget signInInput({
         color: Colors.white,
       ),
       child: Padding(
-        padding: EdgeInsets.only(left: MediaQuery.of(context).size.width*0.045),
+        padding:
+            EdgeInsets.only(left: MediaQuery.of(context).size.width * 0.045),
         child: TextFormField(
           controller: controller,
           maxLines: 1,
@@ -213,7 +218,7 @@ Widget signInInput({
 
 Widget signInButton(BuildContext context, Function signinFunction) {
   return Container(
-    height: MediaQuery.of(context).size.height*0.061,
+    height: MediaQuery.of(context).size.height * 0.061,
     width: MediaQuery.of(context).size.width * 0.6,
     child: FlatButton(
       shape: RoundedRectangleBorder(

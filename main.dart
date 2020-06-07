@@ -25,3 +25,12 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+
+// NOTE ON ALT UID
+// - this uid is used to store either a copy of the uid of the user or
+//   the uid of the person hosting a shared event (such as if the user is invited to a family)
+// - using this uid allows a user in a shared event to commit to the right part of the database
+// - the alt uid can also be a copy of the user uid
+// - processes in the app that involve adding stuff (members / events) to database
+//   use that alt uid
