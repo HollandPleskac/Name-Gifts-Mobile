@@ -8,6 +8,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 import '../logic/fire.dart';
 import '../sub_screens/my_gifts_screen.dart';
+import '../sub_screens/view_gifts_screen.dart';
 
 final _fire = Fire();
 
@@ -29,6 +30,8 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
   String isMembersData = 'loading';
   String familyName;
   bool isFamilyEvent;
+  String screenDisplay;
+  String linkedMemberName;
 
   Future getUid() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
@@ -107,26 +110,46 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
           );
       familyName = famName;
     } catch (e) {
-      familyName = '!@##56765@#asdfsd#@#No Fam Name@#7568@#@adsfsd#%@#%)(*&';
+      familyName = null;
+    }
+  }
+
+  Future determineScreenView(
+    String uid,
+    String altUid,
+    String eventId,
+  ) async {
+    if (uid == altUid) {
+      screenDisplay = 'regular';
+    } else {
+      screenDisplay = 'family';
+      linkedMemberName = await _firestore
+          .collection('user data')
+          .document(uid)
+          .collection('my events')
+          .document(eventId)
+          .get()
+          .then((docSnap) => docSnap.data['display name']);
     }
   }
 
   @override
   void initState() {
     getUid().then((_) {
-      print("got uid");
       getSelectedEventID().then((_) {
-        print("got selected event id");
         getSelectedEventName().then(
           (_) {
-            print('got the selected event name');
             checkMembersData(selectedEventID, altUid).then(
               (_) {
-                print('checked member data');
                 getFamilyName(selectedEventID, altUid).then(
                   (_) {
-                    print('got family name');
-                    setState(() {});
+                    determineScreenView(uid, altUid, selectedEventID).then(
+                      (_) {
+                        print('UID ' + uid);
+                        print('ALT UID ' + altUid.toString());
+                        setState(() {});
+                      },
+                    );
                   },
                 );
               },
@@ -195,7 +218,7 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
                                 top: MediaQuery.of(context).size.height * 0.00,
                               ),
                               child: Text(
-                                'My Members',
+                                'My Family',
                                 // selectedEventName == 'No Selected Event'
                                 //     ? 'My Members'
                                 //     : familyName == null
@@ -224,36 +247,54 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
             // SizedBox(
             //   height: 15,
             // ),
-            MemberOptionBar(
-              altUid: altUid,
-              memberNameController: _memberNameController,
-              inviteController: _inviteController,
-              selectedEventID: selectedEventID,
-              familyName: familyName,
-              selectedEventName: selectedEventName,
-              updateScreenFunction: () => getUid().then((_) {
-                print("got uid");
-                getSelectedEventID().then((_) {
-                  print("got selected event id");
-                  getSelectedEventName().then(
-                    (_) {
-                      print('got the selected event name');
-                      checkMembersData(selectedEventID, altUid).then(
-                        (_) {
-                          print('checked member data');
-                          getFamilyName(selectedEventID, altUid).then(
-                            (_) {
-                              print('got family name');
-                              setState(() {});
-                            },
-                          );
-                        },
-                      );
-                    },
-                  );
-                });
-              }),
-            ),
+            Container(
+              padding: EdgeInsets.only(bottom: 10),
+                    child: Column(
+                      children: [
+                        Text(familyName != null ? familyName + ' in ' + selectedEventName : ''),
+                        //Text(familyName),
+                      ],
+                    ),
+                  ),
+            screenDisplay == 'regular'
+                ? MemberOptionBar(
+                    altUid: altUid,
+                    memberNameController: _memberNameController,
+                    inviteController: _inviteController,
+                    selectedEventID: selectedEventID,
+                    familyName: familyName,
+                    selectedEventName: selectedEventName,
+                    updateScreenFunction: () => getUid().then((_) {
+                      print("got uid");
+                      getSelectedEventID().then((_) {
+                        print("got selected event id");
+                        getSelectedEventName().then(
+                          (_) {
+                            print('got the selected event name');
+                            checkMembersData(selectedEventID, altUid).then(
+                              (_) {
+                                print('checked member data');
+                                getFamilyName(selectedEventID, altUid).then(
+                                  (_) {
+                                    print('got family name');
+                                    setState(() {});
+                                  },
+                                );
+                              },
+                            );
+                          },
+                        );
+                      });
+                    }),
+                  )
+                : Container(
+                    child: Column(
+                      children: [
+                        Text(familyName != null ? familyName + ' in ' + selectedEventName : ''),
+                        //Text(familyName),
+                      ],
+                    ),
+                  ),
             SizedBox(
               height: 10,
             ),
@@ -347,6 +388,8 @@ class _MyMembersScreenState extends State<MyMembersScreen> {
                                               );
                                             });
                                           }),
+                                          screenDisplay: screenDisplay,
+                                          linkedMemberName: linkedMemberName,
                                         );
                                       },
                                     ).toList(),
@@ -398,6 +441,8 @@ class Member extends StatelessWidget {
   final String selectedEventID;
   final Function updateScreenFunction;
   final String altUid;
+  final String screenDisplay;
+  final String linkedMemberName;
 
   Member({
     @required this.memberName,
@@ -406,6 +451,8 @@ class Member extends StatelessWidget {
     @required this.selectedEventID,
     @required this.updateScreenFunction,
     @required this.altUid,
+    @required this.screenDisplay,
+    @required this.linkedMemberName,
   });
   @override
   Widget build(BuildContext context) {
@@ -418,11 +465,22 @@ class Member extends StatelessWidget {
       ),
       child: InkWell(
         onTap: () {
-          Navigator.pushNamed(context, MyGiftsScreen.routeName, arguments: {
-            'uid': altUid,
-            'selected event id': selectedEventID,
-            'member name': memberName,
-          });
+          screenDisplay == 'family' && linkedMemberName != memberName
+              ? Navigator.pushNamed(
+                  context,
+                  ViewGiftsScreen.routeName,
+                  arguments: {
+                    'member name': memberName,
+                    'family uid': altUid,
+                    'selected event id': selectedEventID,
+                  },
+                )
+              : Navigator.pushNamed(context, MyGiftsScreen.routeName,
+                  arguments: {
+                      'uid': altUid,
+                      'selected event id': selectedEventID,
+                      'member name': memberName,
+                    });
         },
         child: Card(
           child: Row(
@@ -448,7 +506,13 @@ class Member extends StatelessWidget {
                     children: <Widget>[
                       Row(
                         children: <Widget>[
-                          hexagon(context),
+                          // take away edit access if in family view
+                          hexagon(
+                              context,
+                              screenDisplay == 'family' &&
+                                      linkedMemberName != memberName
+                                  ? Colors.grey
+                                  : kPrimaryColor),
                           SizedBox(
                             width: 15,
                           ),
@@ -465,13 +529,17 @@ class Member extends StatelessWidget {
                           ),
                         ],
                       ),
-                      memberDelete(
-                        context,
-                        memberName,
-                        altUid,
-                        selectedEventID,
-                        () => updateScreenFunction(),
-                      ),
+                      //take away edit access
+                      screenDisplay == 'family' &&
+                              linkedMemberName != memberName
+                          ? Container()
+                          : memberDelete(
+                              context,
+                              memberName,
+                              altUid,
+                              selectedEventID,
+                              () => updateScreenFunction(),
+                            ),
                     ],
                   ),
                 ),
@@ -484,7 +552,10 @@ class Member extends StatelessWidget {
   }
 }
 
-Widget hexagon(BuildContext context) {
+Widget hexagon(
+  BuildContext context,
+  Color color,
+) {
   return Container(
     width: 60,
     child: ClipPolygon(
@@ -497,7 +568,7 @@ Widget hexagon(BuildContext context) {
       // ],
       child: Container(
         //color: kPrimaryColor,
-        color: kPrimaryColor,
+        color: color,
         child: Icon(
           Icons.person,
           color: Colors.white,
@@ -617,7 +688,7 @@ class _MemberOptionBarState extends State<MemberOptionBar> {
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10)),
                 title: Text(
-                  'Add a member',
+                  'Add a member without email',
                   style: kHeadingTextStyle,
                 ),
                 content: Container(
@@ -672,7 +743,7 @@ class _MemberOptionBarState extends State<MemberOptionBar> {
         ),
         Container(),
         MemberOptionButton(
-          buttonTitle: 'Invite Collaborator',
+          buttonTitle: 'Invite Member',
           onPressFunction: () {
             showDialog(
               context: context,

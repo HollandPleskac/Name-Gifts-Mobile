@@ -13,9 +13,11 @@ class Fire {
         .document(userUid)
         .get()
         .then((docSnap) => docSnap.data['selected event']);
-    if (selectedEvent == '') {
+    if (selectedEvent == '' || selectedEvent == 'no selected event') {
       return userUid;
     }
+
+    print('SeLECTED EVENT + ' + selectedEvent);
 
     String eventType = await _firestore
         .collection('user data')
@@ -33,6 +35,7 @@ class Fire {
           .document(selectedEvent)
           .get()
           .then((docSnap) => docSnap.data['host uid']);
+      print('RETURNING HOST UID + ' + hostUid);
       return hostUid;
     }
     return userUid;
@@ -76,6 +79,7 @@ class Fire {
           DateTime.now(),
         ),
         'event type': 'event',
+        'host uid': uid,
       },
     );
 
@@ -361,24 +365,25 @@ class Fire {
         'event type': inviteType,
         'host': host,
         'creation date': creationDate,
+        'host uid': hostUid,
       },
     );
 
-    // //initializes and gifts value as well as display name
-    // _firestore
-    //     .collection('events')
-    //     .document(invitationEventId)
-    //     .collection('event members')
-    //     .document(uid)
-    //     .collection('family members')
-    //     .document(displayNameForFamily)
-    //     .setData(
-    //   {
-    //     'gifts': 0,
-    //     'member type': 'independent member',
-    //     'linked': uid,
-    //   },
-    // );
+    //initializes and gifts value as well as display name
+    _firestore
+        .collection('events')
+        .document(invitationEventId)
+        .collection('event members')
+        .document(hostUid)
+        .collection('family members')
+        .document(displayNameForFamily)
+        .setData(
+      {
+        'gifts': 0,
+        'member type': 'independent member',
+        'linked': uid,
+      },
+    );
 
     // deletes the events out of invites list
     _firestore

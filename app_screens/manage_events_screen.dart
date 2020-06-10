@@ -184,13 +184,13 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
                 ),
               ),
             ),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: Padding(
-                padding: const EdgeInsets.only(left: 20),
-                child: selectedEvent(context, selectedEventName),
-              ),
-            ),
+            // Align(
+            //   alignment: Alignment.centerLeft,
+            //   child: Padding(
+            //     padding: const EdgeInsets.only(left: 20),
+            //     child: selectedEvent(context, selectedEventName),
+            //   ),
+            // ),
             SizedBox(
               height: 20,
             ),
@@ -247,7 +247,7 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
                                         borderRadius: BorderRadius.circular(2),
                                       ),
                                       color: kPrimaryColor,
-                                      onPressed: () {
+                                      onPressed: () async {
                                         _fire.createEvent(
                                           uid: uid,
                                           eventName: _eventNameController.text,
@@ -256,6 +256,17 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
                                                   .text,
                                           host: 'hollandpleskac@gmail.com',
                                         );
+
+                                        SharedPreferences prefs =
+                                            await SharedPreferences
+                                                .getInstance();
+
+                                        await prefs.setString(
+                                          'uid',
+                                          uid,
+                                        );
+                                        await prefs.setString('alt uid', uid);
+
                                         Navigator.pop(context);
 
                                         //updates the screen after popping
@@ -294,107 +305,107 @@ class _ManageEventsScreenState extends State<ManageEventsScreen> {
                   },
                   selectedEventID,
                 ),
-                topBarButton(
-                  context,
-                  'Invite to Event',
-                  () {
-                    showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(10)),
-                          title: RichText(
-                            text: TextSpan(
-                              children: [
-                                TextSpan(
-                                  text: "Invite to :\n",
-                                  style: kHeadingTextStyle.copyWith(
-                                    fontSize: 20,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: selectedEventName,
-                                  style: kHeadingTextStyle.copyWith(
-                                    color: Colors.black,
-                                    fontSize: 20,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          content: Container(
-                            height: 100,
-                            child: Column(
-                              children: <Widget>[
-                                displayNameInput(
-                                  context: context,
-                                  controller: _inviteController,
-                                  icon: Icon(
-                                    Icons.email,
-                                    color: kPrimaryColor,
-                                  ),
-                                  hintText: 'email of recipient',
-                                ),
-                                Align(
-                                  alignment: Alignment.bottomRight,
-                                  child: Padding(
-                                    padding: const EdgeInsets.only(right: 10),
-                                    child: RaisedButton(
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(2),
-                                      ),
-                                      color: kPrimaryColor,
-                                      onPressed: () async {
-                                        //fire invite member
+                // topBarButton(
+                //   context,
+                //   'Invite to Event',
+                //   () {
+                //     // showDialog(
+                //     //   context: context,
+                //     //   builder: (BuildContext context) {
+                //     //     return AlertDialog(
+                //     //       shape: RoundedRectangleBorder(
+                //     //           borderRadius: BorderRadius.circular(10)),
+                //     //       title: RichText(
+                //     //         text: TextSpan(
+                //     //           children: [
+                //     //             TextSpan(
+                //     //               text: "Invite to :\n",
+                //     //               style: kHeadingTextStyle.copyWith(
+                //     //                 fontSize: 20,
+                //     //                 color: Colors.black,
+                //     //               ),
+                //     //             ),
+                //     //             TextSpan(
+                //     //               text: selectedEventName,
+                //     //               style: kHeadingTextStyle.copyWith(
+                //     //                 color: Colors.black,
+                //     //                 fontSize: 20,
+                //     //               ),
+                //     //             ),
+                //     //           ],
+                //     //         ),
+                //     //       ),
+                //     //       content: Container(
+                //     //         height: 100,
+                //     //         child: Column(
+                //     //           children: <Widget>[
+                //     //             displayNameInput(
+                //     //               context: context,
+                //     //               controller: _inviteController,
+                //     //               icon: Icon(
+                //     //                 Icons.email,
+                //     //                 color: kPrimaryColor,
+                //     //               ),
+                //     //               hintText: 'email of recipient',
+                //     //             ),
+                //     //             Align(
+                //     //               alignment: Alignment.bottomRight,
+                //     //               child: Padding(
+                //     //                 padding: const EdgeInsets.only(right: 10),
+                //     //                 child: RaisedButton(
+                //     //                   shape: RoundedRectangleBorder(
+                //     //                     borderRadius: BorderRadius.circular(2),
+                //     //                   ),
+                //     //                   color: kPrimaryColor,
+                //     //                   onPressed: () async {
+                //     //                     //fire invite member
 
-                                        String host = await _firestore
-                                            .collection('user data')
-                                            .document(uid)
-                                            .get()
-                                            .then(
-                                              (docSnap) =>
-                                                  docSnap.data['email'],
-                                            );
+                //     //                     String host = await _firestore
+                //     //                         .collection('user data')
+                //     //                         .document(uid)
+                //     //                         .get()
+                //     //                         .then(
+                //     //                           (docSnap) =>
+                //     //                               docSnap.data['email'],
+                //     //                         );
 
-                                        String creationDate = await _firestore
-                                            .collection('events')
-                                            .document(selectedEventID)
-                                            .get()
-                                            .then(
-                                              (docSnap) =>
-                                                  docSnap['creation date'],
-                                            );
+                //     //                     String creationDate = await _firestore
+                //     //                         .collection('events')
+                //     //                         .document(selectedEventID)
+                //     //                         .get()
+                //     //                         .then(
+                //     //                           (docSnap) =>
+                //     //                               docSnap['creation date'],
+                //     //                         );
 
-                                        _fire.sendInvite(
-                                          email: _inviteController.text,
-                                          eventId: selectedEventID,
-                                          eventName: selectedEventName,
-                                          uid: uid,
-                                          host: host,
-                                          creationDate: creationDate,
-                                          inviteType: 'event',
-                                        );
-                                        Navigator.pop(context);
-                                      },
-                                      child: Text(
-                                        'Invite',
-                                        style: kSubTextStyle.copyWith(
-                                            color: Colors.white, fontSize: 17),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                  selectedEventID,
-                ),
+                //     //                     _fire.sendInvite(
+                //     //                       email: _inviteController.text,
+                //     //                       eventId: selectedEventID,
+                //     //                       eventName: selectedEventName,
+                //     //                       uid: uid,
+                //     //                       host: host,
+                //     //                       creationDate: creationDate,
+                //     //                       inviteType: 'event',
+                //     //                     );
+                //     //                     Navigator.pop(context);
+                //     //                   },
+                //     //                   child: Text(
+                //     //                     'Invite',
+                //     //                     style: kSubTextStyle.copyWith(
+                //     //                         color: Colors.white, fontSize: 17),
+                //     //                   ),
+                //     //                 ),
+                //     //               ),
+                //     //             ),
+                //     //           ],
+                //     //         ),
+                //     //       ),
+                //     //     );
+                //     //   },
+                //     // );
+                //   },
+                //   selectedEventID,
+                // ),
               ],
             ),
 

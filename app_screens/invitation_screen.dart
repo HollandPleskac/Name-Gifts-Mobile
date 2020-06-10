@@ -497,7 +497,7 @@ class _AcceptInviteToEventState extends State<AcceptInviteToEvent> {
         color: Colors.white,
       ),
       onPressed: () async {
-        print(widget.hostUid);
+        print('tried to join ' + widget.invitationType);
         widget.invitationType == 'event'
             ? showDialog(
                 context: context,
@@ -543,9 +543,9 @@ class _AcceptInviteToEventState extends State<AcceptInviteToEvent> {
                                     host: widget.host,
                                     inviteType: widget.invitationType,
                                   );
-                                  Navigator.pop(context);
 
                                   setState(() {});
+                                  Navigator.pop(context);
                                 },
                                 child: Text(
                                   'Join',
@@ -561,23 +561,89 @@ class _AcceptInviteToEventState extends State<AcceptInviteToEvent> {
                   );
                 },
               )
-            : _fire.acceptInviteToFamily(
-                displayNameForFamily: widget.displayNameController.text,
-                eventName: widget.eventName,
-                uid: widget.uid,
-                invitationEventId: widget.invitationEventId,
-                creationDate: widget.creationDate,
-                host: widget.host,
-                hostUid: widget.hostUid,
-                inviteType: widget.invitationType,
+            : showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    title: Text(
+                      'Join ' + widget.familyName.toString(),
+                      style: kHeadingTextStyle,
+                    ),
+                    content: Container(
+                      height: 110,
+                      child: Column(
+                        children: <Widget>[
+                          displayNameInput(
+                            context: context,
+                            controller: widget.displayNameController,
+                            icon: Icon(
+                              Icons.event_note,
+                              color: kPrimaryColor,
+                            ),
+                            hintText: 'your name in the group',
+                          ),
+                          Align(
+                            alignment: Alignment.bottomRight,
+                            child: Padding(
+                              padding: const EdgeInsets.only(right: 10),
+                              child: RaisedButton(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(2),
+                                ),
+                                color: kPrimaryColor,
+                                onPressed: () async {
+                                  _fire.acceptInviteToFamily(
+                                    displayNameForFamily:
+                                        widget.displayNameController.text,
+                                    eventName: widget.eventName,
+                                    uid: widget.uid,
+                                    invitationEventId: widget.invitationEventId,
+                                    creationDate: widget.creationDate,
+                                    host: widget.host,
+                                    hostUid: widget.hostUid,
+                                    inviteType: widget.invitationType,
+                                  );
+
+                                  SharedPreferences prefs = await SharedPreferences.getInstance();
+                                  prefs.setString('alt uid', widget.hostUid);
+
+                                  setState(() {});
+                                  Navigator.pop(context);
+                                },
+                                child: Text(
+                                  'Join',
+                                  style: kSubTextStyle.copyWith(
+                                      color: Colors.white, fontSize: 17),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
               );
+        // : _fire.acceptInviteToFamily(
+        //     displayNameForFamily: widget.displayNameController.text,
+        //     eventName: widget.eventName,
+        //     uid: widget.uid,
+        //     invitationEventId: widget.invitationEventId,
+        //     creationDate: widget.creationDate,
+        //     host: widget.host,
+        //     hostUid: widget.hostUid,
+        //     inviteType: widget.invitationType,
+        //   );
         // when invited to family the host uid will be used
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        prefs.setString('alt uid', widget.hostUid);
+        //SharedPreferences prefs = await SharedPreferences.getInstance();
+        //prefs.setString('alt uid', widget.hostUid);
 
-        Navigator.pop(context);
+        //Navigator.pop(context);
 
-        setState(() {});
+        //setState(() {});
       },
     );
   }

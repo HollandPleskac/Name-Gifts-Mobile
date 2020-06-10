@@ -26,6 +26,8 @@ class _HomeScreenState extends State<HomeScreen> {
   //selectedEventId - got w/function
   //uid - got w/function
 
+  TextEditingController _inviteController = TextEditingController();
+
   String selectedEventDisplay = '';
   String selectedEvent;
   String selectedEventID;
@@ -103,13 +105,14 @@ class _HomeScreenState extends State<HomeScreen> {
         .where('event name', isEqualTo: newSelectedEventName)
         .getDocuments()
         .then((value) => value.documents[0].documentID);
-
+    print('FEEEDING UID + ' + uid);
+//TODO : get a way to determine a new alt uid
     updateSelectedEventDataInApp(newSelectedEventId, newSelectedEventName);
 
     _fire.setSelectedEvent(uid, selectedEventID);
   }
 
-  void updateSelectedEventDataInApp(newId, newEventName) {
+  void updateSelectedEventDataInApp(newId, newEventName) async {
     setState(() {
       selectedEventID = newId;
 
@@ -179,7 +182,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: Stack(
                       children: <Widget>[
                         Padding(
-                          padding: EdgeInsets.only(bottom: MediaQuery.of(context).size.height * 0.07),
+                          padding: EdgeInsets.only(
+                              bottom:
+                                  MediaQuery.of(context).size.height * 0.07),
                           child: Align(
                             alignment: Alignment.bottomCenter,
                             child: SvgPicture.asset(
@@ -207,7 +212,9 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
           ),
 
-          SizedBox(height: MediaQuery.of(context).size.height*0.011,),
+          SizedBox(
+            height: MediaQuery.of(context).size.height * 0.011,
+          ),
           ////
           ////
           ////
@@ -278,6 +285,11 @@ class _HomeScreenState extends State<HomeScreen> {
                               await setSelectedEventIdInFirestore(
                                 newEventSelected,
                               );
+                              SharedPreferences prefs =
+                                  await SharedPreferences.getInstance();
+
+                              // update the alt uid
+                              await prefs.setString('alt uid', await _fire.determineSelectedEventType(uid));
                             },
                             hint: Text(
                               selectedEventDisplay,
@@ -304,7 +316,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       text: TextSpan(
                         children: [
                           TextSpan(
-                            text: "Event Members\n",
+                            text: "Families\n",
                             style: kTitleTextstyle,
                           ),
                           TextSpan(
@@ -317,16 +329,113 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                     ),
                     Spacer(),
-                    InkWell(
-                      child: Text(
-                        "View Event",
-                        style: TextStyle(
-                          color: kPrimaryColor,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      onTap: () {},
+                    // TODO : invite a group to the current event
+                    IconButton(
+                      icon: Icon(Icons.add),
+                      onPressed: () {
+                        showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10)),
+                          title: RichText(
+                            text: TextSpan(
+                              children: [
+                                TextSpan(
+                                  text: "Invite Family to : \n",
+                                  style: kHeadingTextStyle.copyWith(
+                                    fontSize: 20,
+                                    color: Colors.black,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text: selectedEventDisplay,
+                                  style: kHeadingTextStyle.copyWith(
+                                    color: Colors.black,
+                                    fontSize: 20,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          content: Container(
+                            height: 100,
+                            child: Column(
+                              children: <Widget>[
+                                displayNameInput(
+                                  context: context,
+                                  controller: _inviteController,
+                                  icon: Icon(
+                                    Icons.email,
+                                    color: kPrimaryColor,
+                                  ),
+                                  hintText: 'email of recipient',
+                                ),
+                                Align(
+                                  alignment: Alignment.bottomRight,
+                                  child: Padding(
+                                    padding: const EdgeInsets.only(right: 10),
+                                    child: RaisedButton(
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(2),
+                                      ),
+                                      color: kPrimaryColor,
+                                      onPressed: () async {
+                                        //fire invite member
+
+                                        String host = await _firestore
+                                            .collection('user data')
+                                            .document(uid)
+                                            .get()
+                                            .then(
+                                              (docSnap) =>
+                                                  docSnap.data['email'],
+                                            );
+
+                                        String creationDate = await _firestore
+                                            .collection('events')
+                                            .document(selectedEventID)
+                                            .get()
+                                            .then(
+                                              (docSnap) =>
+                                                  docSnap['creation date'],
+                                            );
+
+                                        _fire.sendInvite(
+                                          email: _inviteController.text,
+                                          eventId: selectedEventID,
+                                          eventName: selectedEventDisplay,
+                                          uid: uid,
+                                          host: host,
+                                          creationDate: creationDate,
+                                          inviteType: 'event',
+                                        );
+                                        Navigator.pop(context);
+                                      },
+                                      child: Text(
+                                        'Invite',
+                                        style: kSubTextStyle.copyWith(
+                                            color: Colors.white, fontSize: 17),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                      },
                     ),
+                    // Text(
+                    //   "View Event",
+                    //   style: TextStyle(
+                    //     color: kPrimaryColor,
+                    //     fontWeight: FontWeight.w600,
+                    //   ),
+                    // ),
                   ],
                 ),
               ],
@@ -605,4 +714,31 @@ class ViewButton extends StatelessWidget {
       ),
     );
   }
+}
+
+Widget displayNameInput({
+  BuildContext context,
+  TextEditingController controller,
+  Icon icon,
+  String hintText,
+}) {
+  return Center(
+    child: Container(
+      width: MediaQuery.of(context).size.width * 0.8,
+      child: TextFormField(
+        controller: controller,
+        maxLines: 1,
+        style: kSubTextStyle,
+        autofocus: false,
+        decoration: InputDecoration(
+            border: InputBorder.none,
+            hintStyle: kSubTextStyle,
+            labelStyle: TextStyle(
+              color: Colors.white,
+            ),
+            hintText: hintText,
+            icon: icon),
+      ),
+    ),
+  );
 }
